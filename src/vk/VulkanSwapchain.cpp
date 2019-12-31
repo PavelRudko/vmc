@@ -1,5 +1,6 @@
 #include "VulkanSwapchain.h"
 #include "common/Utils.h"
+#include <stdexcept>
 
 namespace vmc
 {
@@ -93,12 +94,24 @@ namespace vmc
 		createInfo.clipped = VK_TRUE;
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-		vkCreateSwapchainKHR(device.getHandle(), &createInfo, nullptr, &handle);
+		if (vkCreateSwapchainKHR(device.getHandle(), &createInfo, nullptr, &handle) != VK_SUCCESS) {
+			throw std::runtime_error("Cannot create swapchain.");
+		}
+
+		uint32_t imageCount;
+		vkGetSwapchainImagesKHR(device.getHandle(), handle, &imageCount, nullptr);
+
+		images.resize(imageCount);
+		vkGetSwapchainImagesKHR(device.getHandle(), handle, &imageCount, images.data());
+
+		format = surfaceFormat.format;
 	}
 
 	VulkanSwapchain::VulkanSwapchain(VulkanSwapchain&& other) noexcept :
 		handle(other.handle),
-		device(other.device)
+		device(other.device),
+		images(std::move(other.images)),
+		format(other.format)
 	{
 		other.handle = VK_NULL_HANDLE;
 	}
@@ -113,5 +126,15 @@ namespace vmc
 	VkSwapchainKHR VulkanSwapchain::getHandle() const
 	{
 		return handle;
+	}
+
+	const std::vector<VkImage>& VulkanSwapchain::getImages() const
+	{
+		return images;
+	}
+
+	VkFormat VulkanSwapchain::getFormat() const
+	{
+		return format;
 	}
 }

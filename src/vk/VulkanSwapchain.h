@@ -21,9 +21,17 @@ namespace vmc
 
 		VkSwapchainKHR getHandle() const;
 
+		const std::vector<VkImage>& getImages() const;
+
+		VkFormat getFormat() const;
+
 	private:
 		const VulkanDevice& device;
 
 		VkSwapchainKHR handle = VK_NULL_HANDLE;
+
+		std::vector<VkImage> images;
+
+		VkFormat format;
 	};
 }
