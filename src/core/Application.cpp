@@ -1,23 +1,15 @@
 #include "Application.h"
 #include <stdexcept>
+#include <common/Log.h>
 
 namespace vmc
 {
 	const char* ApplicationName = "vmc";
 
-	void addGLFWInstanceExtensions(std::vector<const char*>& extensions)
-	{
-		uint32_t count;
-		const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&count);
-		for (int i = 0; i < count; i++) {
-			extensions.push_back(glfwExtensions[i]);
-		}
-	}
-
 	std::vector<const char*> getRequiredInstanceExtensions()
 	{
 		std::vector<const char*> extensions;
-		addGLFWInstanceExtensions(extensions);
+		addWindowInstanceExtensions(extensions);
 		return extensions;
 	}
 
@@ -34,30 +26,16 @@ namespace vmc
 		return extensions;
 	}
 
-	Application::Application(uint32_t windowWidth, uint32_t windowHeight) :
-		windowWidth(windowWidth),
-		windowHeight(windowHeight)
+	Application::Application(uint32_t windowWidth, uint32_t windowHeight)
 	{
-		if (glfwInit() == GLFW_FALSE) {
-			throw std::runtime_error("Cannot initialize GLFW");
-		}
-
 		auto requiredInstanceExtensions = getRequiredInstanceExtensions();
 		auto requiredInstanceLayers = getRequiredInstanceLayers();
+		auto requiredDeviceExtensions = getRequiredDeviceExtensions();
 
 		instance = std::make_unique<VulkanInstance>(ApplicationName, ApplicationName, requiredInstanceExtensions, requiredInstanceLayers);
-
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		window = glfwCreateWindow(windowWidth, windowHeight, ApplicationName, nullptr, nullptr);
-
-		if (glfwCreateWindowSurface(instance->getHandle(), window, NULL, &surface) != VK_SUCCESS) {
-			throw std::runtime_error("Cannot initialize window surface.");
-		}
-
-		auto requiredDeviceExtensions = getRequiredDeviceExtensions();
-		device = std::make_unique<VulkanDevice>(instance->getBestPhysicalDevice(), surface, requiredDeviceExtensions);
-
-		swapchain = std::make_unique<VulkanSwapchain>(*device, surface, windowWidth, windowHeight);
+		window = std::make_unique<Window>(*this, *instance, windowWidth, windowHeight, ApplicationName);
+		device = std::make_unique<VulkanDevice>(instance->getBestPhysicalDevice(), window->getSurface(), requiredDeviceExtensions);
+		swapchain = std::make_unique<VulkanSwapchain>(*device, window->getSurface(), windowWidth, windowHeight);
 
 		initImageViews();
 		initRenderPass();
@@ -74,44 +52,23 @@ namespace vmc
 			device->waitIdle();
 		}
 
-		for (const auto& frameResource : frameResources) {
-			vkDestroySemaphore(device->getHandle(), frameResource.imageAvailableSemaphore, nullptr);
-			vkDestroySemaphore(device->getHandle(), frameResource.renderingFinishedSemaphore, nullptr);
-			vkDestroyFence(device->getHandle(), frameResource.fence, nullptr);
-		}
-
-		if (commandPool != VK_NULL_HANDLE) {
-			vkDestroyCommandPool(device->getHandle(), commandPool, nullptr);
-		}
-
-		for (auto framebuffer : framebuffers) {
-			vkDestroyFramebuffer(device->getHandle(), framebuffer, nullptr);
-		}
-
-		if (renderPass != VK_NULL_HANDLE) {
-			vkDestroyRenderPass(device->getHandle(), renderPass, nullptr);
-		}
-
-		for (auto imageView : imageViews) {
-			vkDestroyImageView(device->getHandle(), imageView, nullptr);
-		}
-
-		swapchain.reset();
+		cleanupSwapchain();
 		device.reset();
-
-		if (surface != VK_NULL_HANDLE) {
-			vkDestroySurfaceKHR(instance->getHandle(), surface, nullptr);
-		}
-
+		window.reset();
 		instance.reset();
 	}
 
 	void Application::run()
 	{
-		while (!glfwWindowShouldClose(window)) {
-			glfwPollEvents();
+		while (!window->shouldClose()) {
+			window->pollEvents();
 			draw();
 		}
+	}
+
+	void Application::onWindowResize(uint32_t newWidth, uint32_t newHeight)
+	{
+		logd("%u, %u\n", newWidth, newHeight);
 	}
 
 	void Application::initImageViews()
@@ -184,8 +141,8 @@ namespace vmc
 			VkFramebufferCreateInfo createInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 			createInfo.attachmentCount = 1;
 			createInfo.pAttachments = &imageViews[i];
-			createInfo.width = windowWidth;
-			createInfo.height = windowHeight;
+			createInfo.width = window->getWidth();
+			createInfo.height = window->getHeight();
 			createInfo.layers = 1;
 			createInfo.renderPass = renderPass;
 
@@ -233,7 +190,7 @@ namespace vmc
 			renderPassInfo.renderPass = renderPass;
 			renderPassInfo.framebuffer = framebuffers[i];
 			renderPassInfo.renderArea.offset = { 0, 0 };
-			renderPassInfo.renderArea.extent = { windowWidth, windowHeight };
+			renderPassInfo.renderArea.extent = { window->getWidth(), window->getHeight() };
 			renderPassInfo.clearValueCount = 1;
 			renderPassInfo.pClearValues = &clearColor;
 
@@ -298,5 +255,37 @@ namespace vmc
 		if (vkQueuePresentKHR(device->getPresentQueue(), &presentInfo) != VK_SUCCESS) {
 			throw std::runtime_error("Cannot present to swapchain.");
 		}
+	}
+	void Application::cleanupSwapchain()
+	{
+		for (const auto& frameResource : frameResources) {
+			vkDestroySemaphore(device->getHandle(), frameResource.imageAvailableSemaphore, nullptr);
+			vkDestroySemaphore(device->getHandle(), frameResource.renderingFinishedSemaphore, nullptr);
+			vkDestroyFence(device->getHandle(), frameResource.fence, nullptr);
+		}
+
+		if (commandPool != VK_NULL_HANDLE) {
+			vkDestroyCommandPool(device->getHandle(), commandPool, nullptr);
+		}
+
+		for (auto framebuffer : framebuffers) {
+			vkDestroyFramebuffer(device->getHandle(), framebuffer, nullptr);
+		}
+
+		if (renderPass != VK_NULL_HANDLE) {
+			vkDestroyRenderPass(device->getHandle(), renderPass, nullptr);
+		}
+
+		for (auto imageView : imageViews) {
+			vkDestroyImageView(device->getHandle(), imageView, nullptr);
+		}
+
+		swapchain.reset();
+	}
+
+	void Application::recreateSwapchain()
+	{
+		device->waitIdle();
+		cleanupSwapchain();
 	}
 }

@@ -21,18 +21,30 @@ set(VMC_COMMON_FILES
 
 set(VMC_CORE_FILES
     core/Application.h
-    core/Application.cpp)
+	core/Window.h
+	core/View.h
+	core/GameView.h
+    core/Application.cpp
+	core/Window.cpp
+	core/View.cpp
+	core/GameView.cpp)
+
+set(VMC_RENDERING_FILES
+    rendering/RenderContext.h
+	rendering/RenderContext.cpp)
 
 source_group("\\" FILES ${VMC_FILES})
 source_group("vk\\" FILES ${VMC_VK_FILES})
 source_group("common\\" FILES ${VMC_COMMON_FILES})
 source_group("core\\" FILES ${VMC_CORE_FILES})
+source_group("rendering\\" FILES ${VMC_RENDERING_FILES})
 
 add_executable(vmc 
     ${VMC_FILES} 
     ${VMC_VK_FILES} 
     ${VMC_COMMON_FILES}
-    ${VMC_CORE_FILES})
+    ${VMC_CORE_FILES}
+	${VMC_RENDERING_FILES})
 
 target_link_libraries(vmc
     volk

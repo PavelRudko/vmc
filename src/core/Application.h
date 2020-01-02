@@ -1,9 +1,9 @@
 #pragma once
 
+#include <core/Window.h>
 #include <vk/VulkanDevice.h>
 #include <vk/VulkanInstance.h>
 #include <vk/VulkanSwapchain.h>
-#include <GLFW/glfw3.h>
 #include <memory>
 
 namespace vmc
@@ -32,20 +32,16 @@ namespace vmc
 
 		void run();
 
+		void onWindowResize(uint32_t newWidth, uint32_t newHeight);
+
 	private:
-		uint32_t windowWidth = 0;
-
-		uint32_t windowHeight = 0;
-
-		GLFWwindow* window = nullptr;
+		std::unique_ptr<Window> window;
 
 		std::unique_ptr<VulkanInstance> instance;
 
 		std::unique_ptr<VulkanDevice> device;
 
 		std::unique_ptr<VulkanSwapchain> swapchain;
-
-		VkSurfaceKHR surface = VK_NULL_HANDLE;
 
 		std::vector<VkImageView> imageViews;
 
@@ -76,5 +72,9 @@ namespace vmc
 		void initFrameResources();
 
 		void draw();
+
+		void cleanupSwapchain();
+
+		void recreateSwapchain();
 	};
 }

@@ -102,7 +102,7 @@ namespace vmc
 
 #ifdef VULKAN_DEBUG
         enabledExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-        enabledLayers.push_back("VK_LAYER_KHRONOS_validation");
+        enabledLayers.push_back("VK_LAYER_LUNARG_standard_validation");
 #endif
 
         auto availableExtensions = getAvailableInstanceExtensions();
