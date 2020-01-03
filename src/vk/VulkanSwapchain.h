@@ -9,6 +9,8 @@ namespace vmc
 	public:
 		VulkanSwapchain(const VulkanDevice& device, VkSurfaceKHR surface, uint32_t width, uint32_t height);
 
+		VulkanSwapchain(const VulkanSwapchain& oldSwapchain, uint32_t width, uint32_t height);
+
 		VulkanSwapchain(const VulkanSwapchain&) = delete;
 
 		VulkanSwapchain(VulkanSwapchain&& other) noexcept;
@@ -25,6 +27,10 @@ namespace vmc
 
 		VkFormat getFormat() const;
 
+		VkExtent2D getExtent() const;
+
+		VkSurfaceKHR getSurface() const;
+
 	private:
 		const VulkanDevice& device;
 
@@ -33,5 +39,13 @@ namespace vmc
 		std::vector<VkImage> images;
 
 		VkFormat format;
+
+		VkExtent2D extent;
+
+		VkSurfaceKHR surface = VK_NULL_HANDLE;
+
+		VkColorSpaceKHR colorSpace;
+
+		VkPresentModeKHR presentMode;
 	};
 }
