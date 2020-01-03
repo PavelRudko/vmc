@@ -30,6 +30,7 @@ namespace vmc
 
 		glfwSetWindowUserPointer(handle, this);
 		glfwSetWindowSizeCallback(handle, resizeCallback);
+		glfwSetWindowFocusCallback(handle, focusCallback);
 	}
 
 	Window::~Window()
@@ -60,6 +61,11 @@ namespace vmc
 		return glfwWindowShouldClose(handle);
 	}
 
+	bool Window::isFocused() const
+	{
+		return focused;
+	}
+
 	void Window::pollEvents()
 	{
 		glfwPollEvents();
@@ -72,10 +78,25 @@ namespace vmc
 		application.onWindowResize(newWidth, newHeight);
 	}
 
+	void Window::onFocus(bool focused)
+	{
+		this->focused = focused;
+	}
+
 	void Window::resizeCallback(GLFWwindow* windowHandle, int width, int height)
 	{
-		auto window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(windowHandle));
-		window->onResize(width, height);
+		if (auto window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(windowHandle)))
+		{
+			window->onResize(width, height);
+		}
+	}
+
+	void Window::focusCallback(GLFWwindow* windowHandle, int focused)
+	{
+		if (auto window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(windowHandle)))
+		{
+			window->onFocus(focused);
+		}
 	}
 
 	void addWindowInstanceExtensions(std::vector<const char*>& extensions)

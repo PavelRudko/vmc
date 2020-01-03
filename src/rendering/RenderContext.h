@@ -60,8 +60,6 @@ namespace vmc
 
 		void initCommandBuffers();
 
-		void preRecordCommandBuffers();
-
 		void initFrameResources();
 
 		void handleSurfaceChanges();
@@ -69,5 +67,7 @@ namespace vmc
 		void destroySwapchainResources();
 
 		void initSwapchainResources();
+
+		void recordCommandBuffer(VkCommandBuffer commandBuffer, VkFramebuffer framebuffer);
 	};
 }

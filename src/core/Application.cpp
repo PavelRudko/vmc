@@ -54,7 +54,9 @@ namespace vmc
 	{
 		while (!window->shouldClose()) {
 			window->pollEvents();
-			draw();
+			if (window->isFocused()) {
+				draw();
+			}
 		}
 	}
 

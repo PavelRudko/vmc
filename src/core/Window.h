@@ -32,6 +32,8 @@ namespace vmc
 
 		bool shouldClose() const;
 
+		bool isFocused() const;
+
 		void pollEvents();
 
 	private:
@@ -45,9 +47,15 @@ namespace vmc
 
 		Application& application;
 
+		bool focused = true;
+
 		void onResize(uint32_t newWidth, uint32_t newHeight);
 
+		void onFocus(bool focused);
+
 		static void resizeCallback(GLFWwindow* window, int width, int height);
+
+		static void focusCallback(GLFWwindow* window, int focused);
 	};
 
 	void addWindowInstanceExtensions(std::vector<const char*>& extensions);

@@ -120,6 +120,7 @@ namespace vmc
 	{
 		VkCommandPoolCreateInfo createInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
 		createInfo.queueFamilyIndex = device.getGraphicsQueueFamilyIndex();
+		createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 		if (vkCreateCommandPool(device.getHandle(), &createInfo, nullptr, &commandPool) != VK_SUCCESS) {
 			throw std::runtime_error("Cannot create command pool.");
@@ -137,30 +138,6 @@ namespace vmc
 
 		if (vkAllocateCommandBuffers(device.getHandle(), &allocateInfo, commandBuffers.data()) != VK_SUCCESS) {
 			throw std::runtime_error("Cannot allocate command buffers.");
-		}
-	}
-
-	void RenderContext::preRecordCommandBuffers()
-	{
-		for (uint32_t i = 0; i < commandBuffers.size(); i++) {
-			auto commandBuffer = commandBuffers[i];
-
-			VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-			vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-			VkClearValue clearColor = { 0.8f, 0.9f, 1.0f, 1.0f };
-
-			VkRenderPassBeginInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-			renderPassInfo.renderPass = renderPass;
-			renderPassInfo.framebuffer = framebuffers[i];
-			renderPassInfo.renderArea.offset = { 0, 0 };
-			renderPassInfo.renderArea.extent = swapchain->getExtent();
-			renderPassInfo.clearValueCount = 1;
-			renderPassInfo.pClearValues = &clearColor;
-
-			vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-			vkCmdEndRenderPass(commandBuffer);
-			vkEndCommandBuffer(commandBuffer);
 		}
 	}
 
@@ -190,11 +167,12 @@ namespace vmc
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.getPhysicalDevice(), swapchain->getSurface(), &properties);
 
 		auto extent = swapchain->getExtent();
+		auto newExtent = properties.currentExtent;
 
-		if (properties.currentExtent.width != extent.width || properties.currentExtent.height != extent.height) {
+		if (newExtent.width != extent.width || newExtent.height != extent.height) {
 			device.waitIdle();
 			destroySwapchainResources();
-			swapchain = std::make_unique<VulkanSwapchain>(*swapchain, properties.currentExtent.width, properties.currentExtent.height);
+			swapchain = std::make_unique<VulkanSwapchain>(*swapchain, newExtent.width, newExtent.height);
 			initSwapchainResources();
 		}
 	}
@@ -218,19 +196,48 @@ namespace vmc
 		initImageViews();
 		initFramebuffers();
 		initCommandBuffers();
-		preRecordCommandBuffers();
+	}
+
+	void RenderContext::recordCommandBuffer(VkCommandBuffer commandBuffer, VkFramebuffer framebuffer)
+	{
+		VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+		VkClearValue clearColor = { 0.8f, 0.9f, 1.0f, 1.0f };
+
+		VkRenderPassBeginInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+		renderPassInfo.renderPass = renderPass;
+		renderPassInfo.framebuffer = framebuffer;
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = swapchain->getExtent();
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdEndRenderPass(commandBuffer);
+		vkEndCommandBuffer(commandBuffer);
 	}
 
 	void RenderContext::draw()
 	{
 		auto& resource = frameResources[frameResourceIndex];
+		auto commandBuffer = commandBuffers[frameResourceIndex];
 		frameResourceIndex = (frameResourceIndex + 1) % (uint32_t)frameResources.size();
 
 		vkWaitForFences(device.getHandle(), 1, &resource.fence, VK_TRUE, UINT64_MAX);
 		vkResetFences(device.getHandle(), 1, &resource.fence);
 
+		vkResetCommandBuffer(commandBuffer, 0);
+
 		uint32_t imageIndex;
-		vkAcquireNextImageKHR(device.getHandle(), swapchain->getHandle(), UINT64_MAX, resource.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+		auto result = vkAcquireNextImageKHR(device.getHandle(), swapchain->getHandle(), UINT64_MAX, resource.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+		if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) {
+			handleSurfaceChanges();
+			vkAcquireNextImageKHR(device.getHandle(), swapchain->getHandle(), UINT64_MAX, resource.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+		}
+
+		recordCommandBuffer(commandBuffer, framebuffers[imageIndex]);
 
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
@@ -240,7 +247,7 @@ namespace vmc
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = &resource.renderingFinishedSemaphore;
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+		submitInfo.pCommandBuffers = &commandBuffer;
 
 		if (vkQueueSubmit(device.getGraphicsQueue(), 1, &submitInfo, resource.fence) != VK_SUCCESS) {
 			throw std::runtime_error("Cannot submit command buffer.");
@@ -254,7 +261,7 @@ namespace vmc
 		presentInfo.pSwapchains = &swapchainHandle;
 		presentInfo.pImageIndices = &imageIndex;
 
-		auto result = vkQueuePresentKHR(device.getPresentQueue(), &presentInfo);
+		result = vkQueuePresentKHR(device.getPresentQueue(), &presentInfo);
 		if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) {
 			handleSurfaceChanges();
 		}
