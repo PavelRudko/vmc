@@ -5,6 +5,7 @@
 #include <vk/VulkanInstance.h>
 #include <rendering/RenderContext.h>
 #include <memory>
+#include "View.h"
 
 namespace vmc
 {
@@ -23,6 +24,8 @@ namespace vmc
 
 		Application& operator=(Application&&) = delete;
 
+		const RenderPass& getRenderPass() const;
+
 		void run();
 
 		void onWindowResize(uint32_t newWidth, uint32_t newHeight);
@@ -34,8 +37,12 @@ namespace vmc
 
 		std::unique_ptr<VulkanDevice> device;
 
+		std::unique_ptr<RenderPass> renderPass;
+
 		std::unique_ptr<RenderContext> renderContext;
 
-		void draw();
+		std::unique_ptr<View> currentView;
+
+		void mainLoop();
 	};
 }

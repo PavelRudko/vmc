@@ -31,7 +31,9 @@ set(VMC_CORE_FILES
 
 set(VMC_RENDERING_FILES
     rendering/RenderContext.h
-	rendering/RenderContext.cpp)
+    rendering/RenderPass.h
+	rendering/RenderContext.cpp
+    rendering/RenderPass.cpp)
 
 source_group("\\" FILES ${VMC_FILES})
 source_group("vk\\" FILES ${VMC_VK_FILES})

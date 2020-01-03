@@ -41,6 +41,8 @@ namespace vmc
 
 		VkPhysicalDevice getPhysicalDevice() const;
 
+		VkSurfaceFormatKHR getSurfaceFormat() const;
+
 		void waitIdle() const;
 
 	private:
@@ -63,5 +65,7 @@ namespace vmc
 		uint32_t transferQueueFamilyIndex = 0;
 
 		uint32_t computeQueueFamilyIndex = 0;
+
+		VkSurfaceFormatKHR surfaceFormat;
 	};
 }

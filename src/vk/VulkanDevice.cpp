@@ -4,6 +4,27 @@
 
 namespace vmc
 {
+	std::vector<VkSurfaceFormatKHR> getFormats(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
+	{
+		uint32_t count;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &count, nullptr);
+
+		std::vector<VkSurfaceFormatKHR> formats(count);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &count, formats.data());
+		return formats;
+	}
+
+	VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+	{
+		for (const auto& surfaceFormat : availableFormats) {
+			if (surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR && surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM) {
+				return surfaceFormat;
+			}
+		}
+
+		return availableFormats[0];
+	}
+
 	uint32_t findPresentQueueFamilyIndex(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
 	{
 		uint32_t queueFamiliesCount = 0;
@@ -86,6 +107,9 @@ namespace vmc
 		vkGetDeviceQueue(handle, graphicsQueueFamilyIndex, 0, &graphicsQueue);
 		vkGetDeviceQueue(handle, computeQueueFamilyIndex, 0, &computeQueue);
 		vkGetDeviceQueue(handle, transferQueueFamilyIndex, 0, &transferQueue);
+
+		auto availableFormats = getFormats(physicalDevice, surface);
+		surfaceFormat = chooseSurfaceFormat(availableFormats);
 	}
 
 	VulkanDevice::VulkanDevice(VulkanDevice&& other) noexcept :
@@ -159,6 +183,11 @@ namespace vmc
 	VkPhysicalDevice VulkanDevice::getPhysicalDevice() const
 	{
 		return physicalDevice;
+	}
+
+	VkSurfaceFormatKHR VulkanDevice::getSurfaceFormat() const
+	{
+		return surfaceFormat;
 	}
 
 	void VulkanDevice::waitIdle() const

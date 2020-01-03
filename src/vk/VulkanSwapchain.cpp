@@ -4,16 +4,6 @@
 
 namespace vmc
 {
-	std::vector<VkSurfaceFormatKHR> getFormats(const VulkanDevice& device, VkSurfaceKHR surface)
-	{
-		uint32_t count;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device.getPhysicalDevice(), surface, &count, nullptr);
-
-		std::vector<VkSurfaceFormatKHR> formats(count);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device.getPhysicalDevice(), surface, &count, formats.data());
-		return formats;
-	}
-
 	std::vector<VkPresentModeKHR> getPresentModes(const VulkanDevice& device, VkSurfaceKHR surface)
 	{
 		uint32_t count;
@@ -22,17 +12,6 @@ namespace vmc
 		std::vector<VkPresentModeKHR> presentModes(count);
 		vkGetPhysicalDeviceSurfacePresentModesKHR(device.getPhysicalDevice(), surface, &count, presentModes.data());
 		return presentModes;
-	}
-
-	VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
-	{
-		for (const auto& surfaceFormat : availableFormats) {
-			if (surfaceFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR && surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM) {
-				return surfaceFormat;
-			}
-		}
-
-		return availableFormats[0];
 	}
 
 	VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes)
@@ -59,16 +38,14 @@ namespace vmc
 		return extent;
 	}
 
-	VulkanSwapchain::VulkanSwapchain(const VulkanDevice& device, VkSurfaceKHR surface, uint32_t width, uint32_t height) :
+	VulkanSwapchain::VulkanSwapchain(const VulkanDevice& device, VkSurfaceFormatKHR surfaceFormat, VkSurfaceKHR surface, uint32_t width, uint32_t height) :
 		device(device),
 		surface(surface)
 	{
 		VkSurfaceCapabilitiesKHR capabilities;
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.getPhysicalDevice(), surface, &capabilities);
 
-		auto availableFormats = getFormats(device, surface);
 		auto availablePresentModes = getPresentModes(device, surface);
-		auto surfaceFormat = chooseSurfaceFormat(availableFormats);
 
 		VkSwapchainCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
 		createInfo.surface = surface;

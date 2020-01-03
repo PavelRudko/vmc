@@ -7,7 +7,7 @@ namespace vmc
 	class VulkanSwapchain
 	{
 	public:
-		VulkanSwapchain(const VulkanDevice& device, VkSurfaceKHR surface, uint32_t width, uint32_t height);
+		VulkanSwapchain(const VulkanDevice& device, VkSurfaceFormatKHR surfaceFormat, VkSurfaceKHR surface, uint32_t width, uint32_t height);
 
 		VulkanSwapchain(const VulkanSwapchain& oldSwapchain, uint32_t width, uint32_t height);
 

@@ -3,11 +3,11 @@
 
 namespace vmc
 {
-	RenderContext::RenderContext(VulkanDevice& device, const Window& window) :
+	RenderContext::RenderContext(VulkanDevice& device, const Window& window, const RenderPass& renderPass) :
+		renderPass(renderPass),
 		device(device)
 	{
-		swapchain = std::make_unique<VulkanSwapchain>(device, window.getSurface(), window.getWidth(), window.getHeight());
-		initRenderPass();
+		swapchain = std::make_unique<VulkanSwapchain>(device, device.getSurfaceFormat(), window.getSurface(), window.getWidth(), window.getHeight());
 		initCommandPool();
 		initSwapchainResources();
 		initFrameResources();
@@ -15,10 +15,6 @@ namespace vmc
 
 	RenderContext::~RenderContext()
 	{
-		if (renderPass != VK_NULL_HANDLE) {
-			vkDestroyRenderPass(device.getHandle(), renderPass, nullptr);
-		}
-
 		for (const auto& frameResource : frameResources) {
 			vkDestroySemaphore(device.getHandle(), frameResource.imageAvailableSemaphore, nullptr);
 			vkDestroySemaphore(device.getHandle(), frameResource.renderingFinishedSemaphore, nullptr);
@@ -128,45 +124,6 @@ namespace vmc
 		}
 	}
 
-	void RenderContext::initRenderPass()
-	{
-		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = swapchain->getFormat();
-		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-		VkAttachmentReference colorAttachmentReference{};
-		colorAttachmentReference.attachment = 0;
-		colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		VkSubpassDescription subpass{};
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = &colorAttachmentReference;
-
-		VkSubpassDependency dependency{};
-		dependency.dstSubpass = 0;
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-		VkRenderPassCreateInfo createInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-		createInfo.attachmentCount = 1;
-		createInfo.pAttachments = &colorAttachment;
-		createInfo.subpassCount = 1;
-		createInfo.pSubpasses = &subpass;
-		createInfo.dependencyCount = 1;
-		createInfo.pDependencies = &dependency;
-
-		if (vkCreateRenderPass(device.getHandle(), &createInfo, nullptr, &renderPass) != VK_SUCCESS) {
-			throw std::runtime_error("Cannot create renderpass.");
-		}
-	}
-
 	void RenderContext::initFramebuffers()
 	{
 		auto extent = swapchain->getExtent();
@@ -178,7 +135,7 @@ namespace vmc
 			createInfo.width = extent.width;
 			createInfo.height = extent.height;
 			createInfo.layers = 1;
-			createInfo.renderPass = renderPass;
+			createInfo.renderPass = renderPass.getHandle();
 
 			if (vkCreateFramebuffer(device.getHandle(), &createInfo, nullptr, &framebuffers[i]) != VK_SUCCESS) {
 				throw std::runtime_error("Cannot create framebuffer.");
@@ -278,7 +235,7 @@ namespace vmc
 		clearValue.color = clearColor;
 
 		VkRenderPassBeginInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-		renderPassInfo.renderPass = renderPass;
+		renderPassInfo.renderPass = renderPass.getHandle();
 		renderPassInfo.framebuffer = framebuffer;
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = swapchain->getExtent();

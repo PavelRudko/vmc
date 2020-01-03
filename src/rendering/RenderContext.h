@@ -2,6 +2,7 @@
 
 #include <vk/VulkanDevice.h>
 #include <vk/VulkanSwapchain.h>
+#include "RenderPass.h"
 #include <core/Window.h>
 #include <memory>
 
@@ -17,7 +18,7 @@ namespace vmc
 	class RenderContext
 	{
 	public:
-		RenderContext(VulkanDevice& device, const Window& window);
+		RenderContext(VulkanDevice& device, const Window& window, const RenderPass& renderPass);
 
 		RenderContext(const RenderContext&) = delete;
 
@@ -42,7 +43,7 @@ namespace vmc
 
 		std::vector<VkFramebuffer> framebuffers;
 
-		VkRenderPass renderPass = VK_NULL_HANDLE;
+		const RenderPass& renderPass;
 
 		VkCommandPool commandPool = VK_NULL_HANDLE;
 
@@ -53,8 +54,6 @@ namespace vmc
 		uint32_t frameResourceIndex = 0;
 
 		void initImageViews();
-
-		void initRenderPass();
 
 		void initFramebuffers();
 
