@@ -23,6 +23,7 @@ namespace vmc
 		ensureGLFWIsInitialized();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		handle = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		glfwSetWindowSizeLimits(handle, 320, 240, GLFW_DONT_CARE, GLFW_DONT_CARE);
 
 		if (glfwCreateWindowSurface(instance.getHandle(), handle, NULL, &surface) != VK_SUCCESS) {
 			throw std::runtime_error("Cannot initialize window surface.");

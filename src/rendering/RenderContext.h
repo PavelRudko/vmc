@@ -29,7 +29,9 @@ namespace vmc
 
 		RenderContext& operator=(RenderContext&&) = delete;
 
-		void draw();
+		VkCommandBuffer startFrame(VkClearColorValue clearColor);
+
+		void endFrame();
 
 	private:
 		VulkanDevice& device;
@@ -68,6 +70,12 @@ namespace vmc
 
 		void initSwapchainResources();
 
-		void recordCommandBuffer(VkCommandBuffer commandBuffer, VkFramebuffer framebuffer);
+		bool isFrameStarted = false;
+
+		uint32_t currentImageIndex = 0;
+
+		void beginRecordingCommandBuffer(VkCommandBuffer commandBuffer, VkFramebuffer framebuffer, VkClearColorValue clearColor);
+
+		void endRecordingCommandBuffer(VkCommandBuffer commandBuffer);
 	};
 }

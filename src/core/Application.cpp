@@ -66,7 +66,7 @@ namespace vmc
 
 	void Application::draw()
 	{
-		renderContext->draw();
+		auto commandBuffer = renderContext->startFrame({ 0.8f, 0.9f, 1.0f, 1.0f });
+		renderContext->endFrame();
 	}
-	
 }

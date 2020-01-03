@@ -34,6 +34,76 @@ namespace vmc
 		swapchain.reset();
 	}
 
+	VkCommandBuffer RenderContext::startFrame(VkClearColorValue clearColor)
+	{
+		if (isFrameStarted) {
+			throw std::runtime_error("Cannot start a new frame before the previous is ended.");
+		}
+		
+		auto& resource = frameResources[frameResourceIndex];
+		auto commandBuffer = commandBuffers[frameResourceIndex];
+
+		vkWaitForFences(device.getHandle(), 1, &resource.fence, VK_TRUE, UINT64_MAX);
+		vkResetFences(device.getHandle(), 1, &resource.fence);
+
+		vkResetCommandBuffer(commandBuffer, 0);
+
+		auto result = vkAcquireNextImageKHR(device.getHandle(), swapchain->getHandle(), UINT64_MAX, resource.imageAvailableSemaphore, VK_NULL_HANDLE, &currentImageIndex);
+		if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) {
+			handleSurfaceChanges();
+			vkAcquireNextImageKHR(device.getHandle(), swapchain->getHandle(), UINT64_MAX, resource.imageAvailableSemaphore, VK_NULL_HANDLE, &currentImageIndex);
+		}
+
+		beginRecordingCommandBuffer(commandBuffer, framebuffers[currentImageIndex], clearColor);
+		isFrameStarted = true;
+		return commandBuffer;
+	}
+
+	void RenderContext::endFrame()
+	{
+		if (!isFrameStarted) {
+			throw std::runtime_error("Cannot end the frame before it is started.");
+		}
+
+		auto& resource = frameResources[frameResourceIndex];
+		auto commandBuffer = commandBuffers[frameResourceIndex];
+
+		endRecordingCommandBuffer(commandBuffer);
+
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = &resource.imageAvailableSemaphore;
+		submitInfo.pWaitDstStageMask = waitStages;
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &resource.renderingFinishedSemaphore;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+
+		if (vkQueueSubmit(device.getGraphicsQueue(), 1, &submitInfo, resource.fence) != VK_SUCCESS) {
+			throw std::runtime_error("Cannot submit command buffer.");
+		}
+
+		auto swapchainHandle = swapchain->getHandle();
+		VkPresentInfoKHR presentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = &resource.renderingFinishedSemaphore;
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = &swapchainHandle;
+		presentInfo.pImageIndices = &currentImageIndex;
+
+		auto result = vkQueuePresentKHR(device.getPresentQueue(), &presentInfo);
+		if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) {
+			handleSurfaceChanges();
+		}
+		else if (result != VK_SUCCESS) {
+			throw std::runtime_error("Cannot present to swapchain.");
+		}
+
+		frameResourceIndex = (frameResourceIndex + 1) % (uint32_t)frameResources.size();
+		isFrameStarted = false;
+	}
+
 	void RenderContext::initImageViews()
 	{
 		auto swapchainImages = swapchain->getImages();
@@ -198,13 +268,14 @@ namespace vmc
 		initCommandBuffers();
 	}
 
-	void RenderContext::recordCommandBuffer(VkCommandBuffer commandBuffer, VkFramebuffer framebuffer)
+	void RenderContext::beginRecordingCommandBuffer(VkCommandBuffer commandBuffer, VkFramebuffer framebuffer, VkClearColorValue clearColor)
 	{
 		VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-		VkClearValue clearColor = { 0.8f, 0.9f, 1.0f, 1.0f };
+		VkClearValue clearValue;
+		clearValue.color = clearColor;
 
 		VkRenderPassBeginInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		renderPassInfo.renderPass = renderPass;
@@ -212,61 +283,14 @@ namespace vmc
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = swapchain->getExtent();
 		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
+		renderPassInfo.pClearValues = &clearValue;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdEndRenderPass(commandBuffer);
-		vkEndCommandBuffer(commandBuffer);
 	}
 
-	void RenderContext::draw()
+	void RenderContext::endRecordingCommandBuffer(VkCommandBuffer commandBuffer)
 	{
-		auto& resource = frameResources[frameResourceIndex];
-		auto commandBuffer = commandBuffers[frameResourceIndex];
-		frameResourceIndex = (frameResourceIndex + 1) % (uint32_t)frameResources.size();
-
-		vkWaitForFences(device.getHandle(), 1, &resource.fence, VK_TRUE, UINT64_MAX);
-		vkResetFences(device.getHandle(), 1, &resource.fence);
-
-		vkResetCommandBuffer(commandBuffer, 0);
-
-		uint32_t imageIndex;
-		auto result = vkAcquireNextImageKHR(device.getHandle(), swapchain->getHandle(), UINT64_MAX, resource.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-		if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) {
-			handleSurfaceChanges();
-			vkAcquireNextImageKHR(device.getHandle(), swapchain->getHandle(), UINT64_MAX, resource.imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-		}
-
-		recordCommandBuffer(commandBuffer, framebuffers[imageIndex]);
-
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = &resource.imageAvailableSemaphore;
-		submitInfo.pWaitDstStageMask = waitStages;
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = &resource.renderingFinishedSemaphore;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer;
-
-		if (vkQueueSubmit(device.getGraphicsQueue(), 1, &submitInfo, resource.fence) != VK_SUCCESS) {
-			throw std::runtime_error("Cannot submit command buffer.");
-		}
-
-		auto swapchainHandle = swapchain->getHandle();
-		VkPresentInfoKHR presentInfo{ VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = &resource.renderingFinishedSemaphore;
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = &swapchainHandle;
-		presentInfo.pImageIndices = &imageIndex;
-
-		result = vkQueuePresentKHR(device.getPresentQueue(), &presentInfo);
-		if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) {
-			handleSurfaceChanges();
-		}
-		else if (result != VK_SUCCESS) {
-			throw std::runtime_error("Cannot present to swapchain.");
-		}
+		vkCmdEndRenderPass(commandBuffer);
+		vkEndCommandBuffer(commandBuffer);
 	}
 }
