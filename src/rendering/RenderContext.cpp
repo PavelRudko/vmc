@@ -243,6 +243,23 @@ namespace vmc
 		renderPassInfo.pClearValues = &clearValue;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		auto extent = swapchain->getExtent();
+
+		VkViewport viewport;
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = (float)extent.width;
+		viewport.height = (float)extent.height;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+
+		VkRect2D scissor;
+		scissor.offset = { 0, 0 };
+		scissor.extent = extent;
+
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 	}
 
 	void RenderContext::endRecordingCommandBuffer(VkCommandBuffer commandBuffer)

@@ -26,6 +26,8 @@ namespace vmc
 
 		const RenderPass& getRenderPass() const;
 
+		const VulkanDevice& getDevice() const;
+
 		void run();
 
 		void onWindowResize(uint32_t newWidth, uint32_t newHeight);

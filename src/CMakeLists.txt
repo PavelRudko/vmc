@@ -9,9 +9,11 @@ set(VMC_VK_FILES
     vk/VulkanInstance.h
     vk/VulkanDevice.h
     vk/VulkanSwapchain.h
+    vk/VulkanShaderModule.h
     vk/VulkanInstance.cpp
     vk/VulkanDevice.cpp
-    vk/VulkanSwapchain.cpp)
+    vk/VulkanSwapchain.cpp
+    vk/VulkanShaderModule.cpp)
 
 set(VMC_COMMON_FILES
     common/Log.h

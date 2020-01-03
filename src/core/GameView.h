@@ -14,5 +14,12 @@ namespace vmc
 		virtual void update(float timeDelta) override;
 
 		virtual void render(RenderContext& renderContext) override;
+
+	private:
+		VkPipeline pipeline = VK_NULL_HANDLE;
+
+		VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+
+		void initPipeline();
 	};
 }

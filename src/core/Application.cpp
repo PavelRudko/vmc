@@ -46,6 +46,7 @@ namespace vmc
 			device->waitIdle();
 		}
 
+		currentView.reset();
 		renderContext.reset();
 		renderPass.reset();
 		device.reset();
@@ -56,6 +57,11 @@ namespace vmc
 	const RenderPass& Application::getRenderPass() const
 	{
 		return *renderPass;
+	}
+
+	const VulkanDevice& Application::getDevice() const
+	{
+		return *device;
 	}
 
 	void Application::run()
