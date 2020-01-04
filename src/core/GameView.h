@@ -27,6 +27,7 @@ namespace vmc
 	private:
 		std::unique_ptr<RenderPipeline> defaultPipeline;
 		std::unique_ptr<VulkanBuffer> vertexBuffer;
+		std::unique_ptr<VulkanBuffer> indexBuffer;
 
 		void initPipeline();
 		void initBuffers();

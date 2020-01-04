@@ -63,6 +63,24 @@ namespace vmc
 
 	void VulkanBuffer::flush()
 	{
-		vmaFlushAllocation(device.getMemoryAllocator(), allocation, 0, size);
+		flush(0, size);
+	}
+
+	void VulkanBuffer::flush(VkDeviceSize offset, VkDeviceSize size)
+	{
+		vmaFlushAllocation(device.getMemoryAllocator(), allocation, offset, size);
+	}
+
+	void VulkanBuffer::copyFrom(void* src)
+	{
+		copyFrom(src, 0, size);
+	}
+
+	void VulkanBuffer::copyFrom(void* src, VkDeviceSize offset, VkDeviceSize size)
+	{
+		auto mappedData = map();
+		memcpy(mappedData, src, size);
+		unmap();
+		flush(offset, size);
 	}
 }

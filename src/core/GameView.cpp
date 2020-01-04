@@ -46,7 +46,9 @@ namespace vmc
 		VkDeviceSize offset = 0;
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBufferHandle, &offset);
 
-		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getHandle(), 0, VK_INDEX_TYPE_UINT32);
+
+		vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
 		renderContext.endFrame();
 	}
 
@@ -92,18 +94,21 @@ namespace vmc
 	void GameView::initBuffers()
 	{
 		std::vector<ColorVertex> vertices = {
-			{ {0.0, -0.5, 0, 1}, {1.0, 0.0, 0.0, 0} },
-			{ {0.5, 0.5, 0, 1},  {0.0, 1.0, 0.0, 0} },
-			{ {-0.5, 0.5, 0, 1}, {0.0, 0.0, 1.0, 0} },
+			{{-0.5f, -0.5f, 0, 1}, {1.0f, 0.0f, 0.0f, 1}},
+	        {{0.5f, -0.5f, 0, 1},  {0.0f, 1.0f, 0.0f, 1}},
+	        {{0.5f, 0.5f, 0, 1},   {0.0f, 0.0f, 1.0f, 1}},
+	        {{-0.5f, 0.5f, 0, 1},  {1.0f, 1.0f, 1.0f, 1}}
+		};
+
+		std::vector<uint32_t> indices = {
+			0, 1, 2, 2, 3, 0
 		};
 
 		vertexBuffer = std::make_unique<VulkanBuffer>(application.getDevice(), vertices.size() * sizeof(ColorVertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
-		auto bufferData = vertexBuffer->map();
-		memcpy(bufferData, vertices.data(), vertices.size() * sizeof(ColorVertex));
-		vertexBuffer->unmap();
-		vertexBuffer->flush();
+		vertexBuffer->copyFrom(vertices.data());
 
-
+		indexBuffer = std::make_unique<VulkanBuffer>(application.getDevice(), indices.size() * sizeof(uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+		indexBuffer->copyFrom(indices.data());
 	}
 }
 
