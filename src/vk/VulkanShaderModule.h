@@ -7,11 +7,11 @@ namespace vmc
 	class VulkanShaderModule
 	{
 	public:
-		VulkanShaderModule(const VulkanDevice& device, const std::vector<uint8_t>& data);
+		VulkanShaderModule(const VulkanDevice& device, const std::vector<uint8_t>& data, VkShaderStageFlagBits stage);
 
 		VulkanShaderModule(const VulkanShaderModule&) = delete;
 
-		VulkanShaderModule(VulkanShaderModule&& other) = delete;
+		VulkanShaderModule(VulkanShaderModule&& other) noexcept;
 
 		~VulkanShaderModule();
 
@@ -21,9 +21,13 @@ namespace vmc
 
 		VkShaderModule getHandle() const;
 
+		VkShaderStageFlagBits getStage() const;
+
 	private:
 		const VulkanDevice& device;
 
 		VkShaderModule handle = VK_NULL_HANDLE;
+
+		VkShaderStageFlagBits stage;
 	};
 }

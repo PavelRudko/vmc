@@ -34,8 +34,10 @@ set(VMC_CORE_FILES
 set(VMC_RENDERING_FILES
     rendering/RenderContext.h
     rendering/RenderPass.h
+    rendering/RenderPipeline.h
     rendering/RenderContext.cpp
-    rendering/RenderPass.cpp)
+    rendering/RenderPass.cpp
+    rendering/RenderPipeline.cpp)
 
 set(VMC_SHADER_FILES
     shaders/default.vert

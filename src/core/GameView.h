@@ -1,6 +1,7 @@
 #pragma once
 
 #include "View.h"
+#include <rendering/RenderPipeline.h>
 
 namespace vmc
 {
@@ -16,10 +17,6 @@ namespace vmc
 		virtual void render(RenderContext& renderContext) override;
 
 	private:
-		VkPipeline pipeline = VK_NULL_HANDLE;
-
-		VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-
-		void initPipeline();
+		std::unique_ptr<RenderPipeline> defaultPipeline;
 	};
 }
