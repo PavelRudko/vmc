@@ -3,6 +3,7 @@
 #include <core/Window.h>
 #include <vk/VulkanDevice.h>
 #include <vk/VulkanInstance.h>
+#include <vk/StagingManager.h>
 #include <rendering/RenderContext.h>
 #include <memory>
 #include "View.h"
@@ -28,6 +29,8 @@ namespace vmc
 
 		const VulkanDevice& getDevice() const;
 
+		StagingManager& getStagingManager();
+
 		void run();
 
 		void onWindowResize(uint32_t newWidth, uint32_t newHeight);
@@ -42,6 +45,8 @@ namespace vmc
 		std::unique_ptr<RenderPass> renderPass;
 
 		std::unique_ptr<RenderContext> renderContext;
+
+		std::unique_ptr<StagingManager> stagingManager;
 
 		std::unique_ptr<View> currentView;
 

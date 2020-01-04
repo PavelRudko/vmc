@@ -93,6 +93,8 @@ namespace vmc
 
 	void GameView::initBuffers()
 	{
+		auto& stagingManager = application.getStagingManager();
+
 		std::vector<ColorVertex> vertices = {
 			{{-0.5f, -0.5f, 0, 1}, {1.0f, 0.0f, 0.0f, 1}},
 	        {{0.5f, -0.5f, 0, 1},  {0.0f, 1.0f, 0.0f, 1}},
@@ -104,11 +106,13 @@ namespace vmc
 			0, 1, 2, 2, 3, 0
 		};
 
-		vertexBuffer = std::make_unique<VulkanBuffer>(application.getDevice(), vertices.size() * sizeof(ColorVertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
-		vertexBuffer->copyFrom(vertices.data());
+		vertexBuffer = std::make_unique<VulkanBuffer>(application.getDevice(), vertices.size() * sizeof(ColorVertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
+		indexBuffer = std::make_unique<VulkanBuffer>(application.getDevice(), indices.size() * sizeof(uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
 
-		indexBuffer = std::make_unique<VulkanBuffer>(application.getDevice(), indices.size() * sizeof(uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
-		indexBuffer->copyFrom(indices.data());
+		stagingManager.start();
+		stagingManager.copyToBuffer(vertices.data(), *vertexBuffer, 0, vertexBuffer->getSize());
+		stagingManager.copyToBuffer(indices.data(), *indexBuffer, 0, indexBuffer->getSize());
+		stagingManager.flush();
 	}
 }
 

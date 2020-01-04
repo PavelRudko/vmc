@@ -79,7 +79,7 @@ namespace vmc
 	void VulkanBuffer::copyFrom(void* src, VkDeviceSize offset, VkDeviceSize size)
 	{
 		auto mappedData = map();
-		memcpy(mappedData, src, size);
+		memcpy((uint8_t*)mappedData + offset, src, size);
 		unmap();
 		flush(offset, size);
 	}

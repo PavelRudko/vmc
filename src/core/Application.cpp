@@ -36,6 +36,7 @@ namespace vmc
 		instance = std::make_unique<VulkanInstance>(ApplicationName, ApplicationName, requiredInstanceExtensions, requiredInstanceLayers);
 		window = std::make_unique<Window>(*this, *instance, windowWidth, windowHeight, ApplicationName);
 		device = std::make_unique<VulkanDevice>(instance->getBestPhysicalDevice(), window->getSurface(), requiredDeviceExtensions);
+		stagingManager = std::make_unique<StagingManager>(*device);
 		renderPass = std::make_unique<RenderPass>(*device, device->getSurfaceFormat().format);
 		renderContext = std::make_unique<RenderContext>(*device, *window, *renderPass);
 	}
@@ -49,6 +50,7 @@ namespace vmc
 		currentView.reset();
 		renderContext.reset();
 		renderPass.reset();
+		stagingManager.reset();
 		device.reset();
 		window.reset();
 		instance.reset();
@@ -62,6 +64,11 @@ namespace vmc
 	const VulkanDevice& Application::getDevice() const
 	{
 		return *device;
+	}
+
+	StagingManager& Application::getStagingManager()
+	{
+		return *stagingManager;
 	}
 
 	void Application::run()
