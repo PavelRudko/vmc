@@ -1,6 +1,8 @@
 #include "VulkanDevice.h"
 #include <stdexcept>
 #include <set>
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
 
 namespace vmc
 {
@@ -110,6 +112,34 @@ namespace vmc
 
 		auto availableFormats = getFormats(physicalDevice, surface);
 		surfaceFormat = chooseSurfaceFormat(availableFormats);
+
+		VmaVulkanFunctions vmaFunctions{};
+		vmaFunctions.vkAllocateMemory = vkAllocateMemory;
+		vmaFunctions.vkBindBufferMemory = vkBindBufferMemory;
+		vmaFunctions.vkBindImageMemory = vkBindImageMemory;
+		vmaFunctions.vkCreateBuffer = vkCreateBuffer;
+		vmaFunctions.vkCreateImage = vkCreateImage;
+		vmaFunctions.vkDestroyBuffer = vkDestroyBuffer;
+		vmaFunctions.vkDestroyImage = vkDestroyImage;
+		vmaFunctions.vkFlushMappedMemoryRanges = vkFlushMappedMemoryRanges;
+		vmaFunctions.vkFreeMemory = vkFreeMemory;
+		vmaFunctions.vkGetBufferMemoryRequirements = vkGetBufferMemoryRequirements;
+		vmaFunctions.vkGetImageMemoryRequirements = vkGetImageMemoryRequirements;
+		vmaFunctions.vkGetPhysicalDeviceMemoryProperties = vkGetPhysicalDeviceMemoryProperties;
+		vmaFunctions.vkGetPhysicalDeviceProperties = vkGetPhysicalDeviceProperties;
+		vmaFunctions.vkInvalidateMappedMemoryRanges = vkInvalidateMappedMemoryRanges;
+		vmaFunctions.vkMapMemory = vkMapMemory;
+		vmaFunctions.vkUnmapMemory = vkUnmapMemory;
+		vmaFunctions.vkCmdCopyBuffer = vkCmdCopyBuffer;
+
+		VmaAllocatorCreateInfo allocatorCreateInfo{};
+		allocatorCreateInfo.physicalDevice = physicalDevice;
+		allocatorCreateInfo.device = handle;
+		allocatorCreateInfo.pVulkanFunctions = &vmaFunctions;
+
+		if (vmaCreateAllocator(&allocatorCreateInfo, &memoryAllocator) != VK_SUCCESS) {
+			throw std::runtime_error("Cannot create memory allocator.");
+		}
 	}
 
 	VulkanDevice::VulkanDevice(VulkanDevice&& other) noexcept :
@@ -122,13 +152,20 @@ namespace vmc
 		presentQueueFamilyIndex(other.presentQueueFamilyIndex),
 		graphicsQueueFamilyIndex(other.graphicsQueueFamilyIndex),
 		transferQueueFamilyIndex(other.transferQueueFamilyIndex),
-		computeQueueFamilyIndex(other.computeQueueFamilyIndex)
+		computeQueueFamilyIndex(other.computeQueueFamilyIndex),
+		surfaceFormat(other.surfaceFormat),
+		memoryAllocator(other.memoryAllocator)
 	{
 		other.handle = VK_NULL_HANDLE;
+		other.memoryAllocator = VK_NULL_HANDLE;
 	}
 
 	VulkanDevice::~VulkanDevice()
 	{
+		if (memoryAllocator != VK_NULL_HANDLE){
+			vmaDestroyAllocator(memoryAllocator);
+		}
+
 		if (handle != VK_NULL_HANDLE) {
 			waitIdle();
 			vkDestroyDevice(handle, nullptr);
@@ -188,6 +225,11 @@ namespace vmc
 	VkSurfaceFormatKHR VulkanDevice::getSurfaceFormat() const
 	{
 		return surfaceFormat;
+	}
+
+	VmaAllocator VulkanDevice::getMemoryAllocator() const
+	{
+		return memoryAllocator;
 	}
 
 	void VulkanDevice::waitIdle() const

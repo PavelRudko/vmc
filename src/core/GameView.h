@@ -2,9 +2,17 @@
 
 #include "View.h"
 #include <rendering/RenderPipeline.h>
+#include <vk/VulkanBuffer.h>
+#include <glm/glm.hpp>
 
 namespace vmc
 {
+	struct ColorVertex
+	{
+		glm::vec4 position;
+		glm::vec4 color;
+	};
+
 	class GameView : public View
 	{
 	public:
@@ -18,5 +26,9 @@ namespace vmc
 
 	private:
 		std::unique_ptr<RenderPipeline> defaultPipeline;
+		std::unique_ptr<VulkanBuffer> vertexBuffer;
+
+		void initPipeline();
+		void initBuffers();
 	};
 }

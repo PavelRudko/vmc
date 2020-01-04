@@ -42,6 +42,8 @@ namespace vmc
 		VkPhysicalDevice getPhysicalDevice() const;
 
 		VkSurfaceFormatKHR getSurfaceFormat() const;
+		
+		VmaAllocator getMemoryAllocator() const;
 
 		void waitIdle() const;
 
@@ -67,5 +69,7 @@ namespace vmc
 		uint32_t computeQueueFamilyIndex = 0;
 
 		VkSurfaceFormatKHR surfaceFormat;
+
+		VmaAllocator memoryAllocator = VK_NULL_HANDLE;
 	};
 }

@@ -7,6 +7,8 @@ namespace vmc
 {
 	struct RenderPipelineDescription
 	{
+		std::vector<VkVertexInputBindingDescription> vertexBindings;
+		std::vector<VkVertexInputAttributeDescription> vertexAttributes;
 		std::vector<VulkanShaderModule> shaderModules;
 		VkRenderPass renderPass;
 		uint32_t subpass;
