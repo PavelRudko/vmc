@@ -47,6 +47,8 @@ namespace vmc
 
 		Application& application;
 
+		const VulkanInstance& instance;
+
 		bool focused = true;
 
 		void onResize(uint32_t newWidth, uint32_t newHeight);

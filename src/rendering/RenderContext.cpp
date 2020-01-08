@@ -100,6 +100,16 @@ namespace vmc
 		isFrameStarted = false;
 	}
 
+	uint32_t RenderContext::getWidth() const
+	{
+		return swapchain->getExtent().width;
+	}
+
+	uint32_t RenderContext::getHeight() const
+	{
+		return swapchain->getExtent().height;
+	}
+
 	void RenderContext::initImageViews()
 	{
 		auto swapchainImages = swapchain->getImages();

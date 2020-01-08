@@ -34,7 +34,6 @@ namespace vmc
 
         std::vector<VkExtensionProperties> extensions(extensionsCount);
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionsCount, extensions.data());
-
         return extensions;
     }
 
@@ -102,7 +101,7 @@ namespace vmc
 
 #ifdef VULKAN_DEBUG
         enabledExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-        enabledLayers.push_back("VK_LAYER_LUNARG_standard_validation");
+        enabledLayers.push_back("VK_LAYER_KHRONOS_validation");
 #endif
 
         auto availableExtensions = getAvailableInstanceExtensions();

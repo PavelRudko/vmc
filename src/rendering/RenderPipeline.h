@@ -10,6 +10,7 @@ namespace vmc
 		std::vector<VkVertexInputBindingDescription> vertexBindings;
 		std::vector<VkVertexInputAttributeDescription> vertexAttributes;
 		std::vector<VulkanShaderModule> shaderModules;
+		std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 		VkRenderPass renderPass;
 		uint32_t subpass;
 	};

@@ -42,8 +42,8 @@ namespace vmc
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizer.lineWidth = 1.0f;
-		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+		rasterizer.cullMode = VK_CULL_MODE_NONE;
+		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
 		VkPipelineMultisampleStateCreateInfo multisampling{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
 		multisampling.sampleShadingEnable = VK_FALSE;
@@ -59,6 +59,8 @@ namespace vmc
 		colorBlending.pAttachments = &colorBlendAttachment;
 
 		VkPipelineLayoutCreateInfo layoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
+		layoutCreateInfo.setLayoutCount = description.descriptorSetLayouts.size();
+		layoutCreateInfo.pSetLayouts = description.descriptorSetLayouts.data();
 
 		if (vkCreatePipelineLayout(device.getHandle(), &layoutCreateInfo, nullptr, &layout) != VK_SUCCESS) {
 			throw std::runtime_error("Cannot create pipeline layout.");

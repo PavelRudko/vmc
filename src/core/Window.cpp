@@ -18,7 +18,8 @@ namespace vmc
 	Window::Window(Application& application, const VulkanInstance& instance, uint32_t width, uint32_t height, const std::string& title) :
 		application(application),
 		width(width),
-		height(height)
+		height(height),
+		instance(instance)
 	{
 		ensureGLFWIsInitialized();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -37,6 +38,7 @@ namespace vmc
 	Window::~Window()
 	{
 		if (handle) {
+			vkDestroySurfaceKHR(instance.getHandle(), surface, nullptr);
 			glfwDestroyWindow(handle);
 			glfwTerminate();
 		}

@@ -13,6 +13,13 @@ namespace vmc
 		glm::vec4 color;
 	};
 
+	struct UniformData
+	{
+		glm::mat4 model;
+		glm::mat4 view;
+		glm::mat4 projection;
+	};
+
 	class GameView : public View
 	{
 	public:
@@ -28,7 +35,14 @@ namespace vmc
 		std::unique_ptr<RenderPipeline> defaultPipeline;
 		std::unique_ptr<VulkanBuffer> vertexBuffer;
 		std::unique_ptr<VulkanBuffer> indexBuffer;
+		std::vector<VulkanBuffer> uniformBuffers;
+		VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+		VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSet> descriptorSets;
+		UniformData uniforms;
 
+		void initDescriptorSetLayout();
+		void initDescriptorPool();
 		void initPipeline();
 		void initBuffers();
 	};
