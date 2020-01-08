@@ -2,7 +2,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <core/Application.h>
-#include <vk/VulkanShaderModule.h>
+#include <vk/ShaderModule.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace vmc
@@ -26,17 +26,12 @@ namespace vmc
 	GameView::GameView(Application& application) :
 		View(application)
 	{
-		initDescriptorSetLayout();
 		initPipeline();
 		initBuffers();
-		initUniforms();
 	}
 
 	GameView::~GameView()
 	{
-		if (descriptorSetLayout != VK_NULL_HANDLE) {
-			vkDestroyDescriptorSetLayout(application.getDevice().getHandle(), descriptorSetLayout, nullptr);
-		}
 	}
 
 	void GameView::update(float timeDelta)
@@ -45,9 +40,7 @@ namespace vmc
 
 	void GameView::render(RenderContext& renderContext)
 	{
-		uint32_t currentUniformIndex = 0; 
-		auto& uniform = uniforms[currentUniformIndex];
-		uniform.reset();
+		auto& uniform = renderContext.getMVPUniform();
 		auto uniformDescriptorSet = uniform.getDescriptorSet();
 
 		auto viewMatrix = glm::lookAt(glm::vec3(0, 0, 2.0f), glm::vec3(0, 0, 0), glm::vec3(0, 1.0f, 0));
@@ -74,36 +67,6 @@ namespace vmc
 		}
 
 		renderContext.endFrame();
-		currentUniformIndex++;
-
-		uniform.flush();
-	}
-
-	void GameView::initDescriptorSetLayout()
-	{
-		VkDescriptorSetLayoutBinding uniformDataBinding{};
-		uniformDataBinding.binding = 0;
-		uniformDataBinding.descriptorCount = 1;
-		uniformDataBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-		uniformDataBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-		VkDescriptorSetLayoutCreateInfo createInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
-		createInfo.bindingCount = 1;
-		createInfo.pBindings = &uniformDataBinding;
-
-		if (vkCreateDescriptorSetLayout(application.getDevice().getHandle(), &createInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-			throw std::runtime_error("Cannot create descriptor set layout.");
-		}
-	}
-
-	void GameView::initUniforms()
-	{
-		uint32_t frameCount = 3;
-		descriptorPool = std::make_unique<DescriptorPool>(application.getDevice(), 0, frameCount, 0, frameCount);
-
-		for (uint32_t i = 0; i < frameCount; i++) {
-			uniforms.emplace_back(application.getDevice(), *descriptorPool, descriptorSetLayout, sizeof(glm::mat4), 256);
-		}
 	}
 
 	void GameView::initPipeline()
@@ -142,7 +105,7 @@ namespace vmc
 		pipelineDescription.vertexAttributes.push_back(positionAttribute);
 		pipelineDescription.vertexAttributes.push_back(colorAttribute);
 
-		pipelineDescription.descriptorSetLayouts.push_back(descriptorSetLayout);
+		pipelineDescription.descriptorSetLayouts.push_back(application.getMVPLayout().getHandle());
 
 		defaultPipeline = std::make_unique<RenderPipeline>(application.getDevice(), pipelineDescription);
 	}

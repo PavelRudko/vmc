@@ -5,6 +5,7 @@
 #include <vk/VulkanBuffer.h>
 #include <vk/DescriptorPool.h>
 #include <vk/DynamicUniform.h>
+#include <vk/DescriptorSetLayout.h>
 #include <glm/glm.hpp>
 
 namespace vmc
@@ -28,14 +29,9 @@ namespace vmc
 
 	private:
 		std::unique_ptr<RenderPipeline> defaultPipeline;
-		std::unique_ptr<DescriptorPool> descriptorPool;
 		std::unique_ptr<VulkanBuffer> vertexBuffer;
 		std::unique_ptr<VulkanBuffer> indexBuffer;
-		std::vector<DynamicUniform> uniforms;
-		VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
 
-		void initDescriptorSetLayout();
-		void initUniforms();
 		void initPipeline();
 		void initBuffers();
 	};

@@ -5,6 +5,7 @@
 #include <vk/VulkanInstance.h>
 #include <vk/StagingManager.h>
 #include <rendering/RenderContext.h>
+#include <vk/DescriptorSetLayout.h>
 #include <memory>
 #include "View.h"
 
@@ -31,6 +32,8 @@ namespace vmc
 
 		StagingManager& getStagingManager();
 
+		const DescriptorSetLayout& getMVPLayout() const;
+
 		void run();
 
 		void onWindowResize(uint32_t newWidth, uint32_t newHeight);
@@ -41,6 +44,8 @@ namespace vmc
 		std::unique_ptr<VulkanInstance> instance;
 
 		std::unique_ptr<VulkanDevice> device;
+
+		std::unique_ptr<DescriptorSetLayout> mvpLayout;
 
 		std::unique_ptr<RenderPass> renderPass;
 

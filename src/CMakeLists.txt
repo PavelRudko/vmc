@@ -8,20 +8,22 @@ set(VMC_FILES
 set(VMC_VK_FILES
     vk/VulkanInstance.h
     vk/VulkanDevice.h
-    vk/VulkanSwapchain.h
-    vk/VulkanShaderModule.h
+    vk/Swapchain.h
+    vk/ShaderModule.h
     vk/VulkanBuffer.h
     vk/StagingManager.h
     vk/DescriptorPool.h
     vk/DynamicUniform.h
+    vk/DescriptorSetLayout.h
     vk/VulkanInstance.cpp
     vk/VulkanDevice.cpp
-    vk/VulkanSwapchain.cpp
-    vk/VulkanShaderModule.cpp
+    vk/Swapchain.cpp
+    vk/ShaderModule.cpp
     vk/VulkanBuffer.cpp
     vk/StagingManager.cpp
     vk/DescriptorPool.cpp
-    vk/DynamicUniform.cpp)
+    vk/DynamicUniform.cpp
+    vk/DescriptorSetLayout.cpp)
 
 set(VMC_COMMON_FILES
     common/Log.h

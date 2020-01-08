@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vk/VulkanDevice.h>
-#include <vk/VulkanShaderModule.h>
+#include <vk/ShaderModule.h>
 
 namespace vmc
 {

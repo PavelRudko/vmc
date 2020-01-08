@@ -1,9 +1,11 @@
 #pragma once
 
 #include <vk/VulkanDevice.h>
-#include <vk/VulkanSwapchain.h>
+#include <vk/Swapchain.h>
 #include "RenderPass.h"
 #include <core/Window.h>
+#include <vk/DescriptorSetLayout.h>
+#include <vk/DynamicUniform.h>
 #include <memory>
 
 namespace vmc
@@ -13,12 +15,13 @@ namespace vmc
 		VkSemaphore renderingFinishedSemaphore;
 		VkSemaphore imageAvailableSemaphore;
 		VkFence fence;
+		std::unique_ptr<DynamicUniform> mvpUniform;
 	};
 
 	class RenderContext
 	{
 	public:
-		RenderContext(VulkanDevice& device, const Window& window, const RenderPass& renderPass);
+		RenderContext(VulkanDevice& device, const Window& window, const RenderPass& renderPass, const DescriptorSetLayout& mvpLayout);
 
 		RenderContext(const RenderContext&) = delete;
 
@@ -38,10 +41,14 @@ namespace vmc
 
 		uint32_t getHeight() const;
 
+		DynamicUniform& getMVPUniform();
+
 	private:
 		VulkanDevice& device;
 
 		std::unique_ptr<VulkanSwapchain> swapchain;
+
+		std::unique_ptr<DescriptorPool> descriptorPool;
 
 		std::vector<VkImageView> imageViews;
 
@@ -65,7 +72,7 @@ namespace vmc
 
 		void initCommandBuffers();
 
-		void initFrameResources();
+		void initFrameResources(const DescriptorSetLayout& mvpLayout);
 
 		void handleSurfaceChanges();
 

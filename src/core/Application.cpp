@@ -36,9 +36,18 @@ namespace vmc
 		instance = std::make_unique<VulkanInstance>(ApplicationName, ApplicationName, requiredInstanceExtensions, requiredInstanceLayers);
 		window = std::make_unique<Window>(*this, *instance, windowWidth, windowHeight, ApplicationName);
 		device = std::make_unique<VulkanDevice>(instance->getBestPhysicalDevice(), window->getSurface(), requiredDeviceExtensions);
+
+		VkDescriptorSetLayoutBinding uniformDataBinding{};
+		uniformDataBinding.binding = 0;
+		uniformDataBinding.descriptorCount = 1;
+		uniformDataBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+		uniformDataBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+		mvpLayout = std::make_unique<DescriptorSetLayout>(*device, std::vector<VkDescriptorSetLayoutBinding>{ uniformDataBinding });
+
 		stagingManager = std::make_unique<StagingManager>(*device);
 		renderPass = std::make_unique<RenderPass>(*device, device->getSurfaceFormat().format);
-		renderContext = std::make_unique<RenderContext>(*device, *window, *renderPass);
+		renderContext = std::make_unique<RenderContext>(*device, *window, *renderPass, *mvpLayout);
 	}
 
 	Application::~Application()
@@ -51,6 +60,7 @@ namespace vmc
 		renderContext.reset();
 		renderPass.reset();
 		stagingManager.reset();
+		mvpLayout.reset();
 		device.reset();
 		window.reset();
 		instance.reset();
@@ -69,6 +79,11 @@ namespace vmc
 	StagingManager& Application::getStagingManager()
 	{
 		return *stagingManager;
+	}
+
+	const DescriptorSetLayout& Application::getMVPLayout() const
+	{
+		return *mvpLayout;
 	}
 
 	void Application::run()

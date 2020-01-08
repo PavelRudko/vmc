@@ -1,16 +1,17 @@
 #include "RenderContext.h"
 #include <stdexcept>
+#include <glm/glm.hpp>
 
 namespace vmc
 {
-	RenderContext::RenderContext(VulkanDevice& device, const Window& window, const RenderPass& renderPass) :
+	RenderContext::RenderContext(VulkanDevice& device, const Window& window, const RenderPass& renderPass, const DescriptorSetLayout& mvpLayout) :
 		renderPass(renderPass),
 		device(device)
 	{
 		swapchain = std::make_unique<VulkanSwapchain>(device, device.getSurfaceFormat(), window.getSurface(), window.getWidth(), window.getHeight());
 		initCommandPool();
 		initSwapchainResources();
-		initFrameResources();
+		initFrameResources(mvpLayout);
 	}
 
 	RenderContext::~RenderContext()
@@ -52,6 +53,7 @@ namespace vmc
 
 		beginRecordingCommandBuffer(commandBuffer, framebuffers[currentImageIndex], clearColor);
 		isFrameStarted = true;
+		resource.mvpUniform->reset();
 		return commandBuffer;
 	}
 
@@ -63,6 +65,7 @@ namespace vmc
 
 		auto& resource = frameResources[frameResourceIndex];
 		auto commandBuffer = commandBuffers[frameResourceIndex];
+		resource.mvpUniform->flush();
 
 		endRecordingCommandBuffer(commandBuffer);
 
@@ -108,6 +111,11 @@ namespace vmc
 	uint32_t RenderContext::getHeight() const
 	{
 		return swapchain->getExtent().height;
+	}
+
+	DynamicUniform& RenderContext::getMVPUniform()
+	{
+		return *frameResources[frameResourceIndex].mvpUniform;
 	}
 
 	void RenderContext::initImageViews()
@@ -178,9 +186,10 @@ namespace vmc
 		}
 	}
 
-	void RenderContext::initFrameResources()
+	void RenderContext::initFrameResources(const DescriptorSetLayout& mvpLayout)
 	{
 		frameResources.resize(framebuffers.size());
+		descriptorPool = std::make_unique<DescriptorPool>(device, 0, framebuffers.size(), 0, framebuffers.size());
 
 		VkSemaphoreCreateInfo semaphoreCreateInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
 		VkFenceCreateInfo fenceCreateInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
@@ -195,6 +204,8 @@ namespace vmc
 			if (vkCreateFence(device.getHandle(), &fenceCreateInfo, nullptr, &frameResources[i].fence) != VK_SUCCESS) {
 				throw std::runtime_error("Cannot create fence.");
 			}
+
+			frameResources[i].mvpUniform = std::make_unique<DynamicUniform>(device, *descriptorPool, mvpLayout.getHandle(), sizeof(glm::mat4), 256);
 		}
 	}
 

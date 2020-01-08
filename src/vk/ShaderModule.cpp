@@ -1,4 +1,4 @@
-#include "VulkanShaderModule.h"
+#include "ShaderModule.h"
 #include <stdexcept>
 
 namespace vmc
