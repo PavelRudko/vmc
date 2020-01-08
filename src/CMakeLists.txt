@@ -12,12 +12,16 @@ set(VMC_VK_FILES
     vk/VulkanShaderModule.h
     vk/VulkanBuffer.h
     vk/StagingManager.h
+    vk/DescriptorPool.h
+    vk/DynamicUniform.h
     vk/VulkanInstance.cpp
     vk/VulkanDevice.cpp
     vk/VulkanSwapchain.cpp
     vk/VulkanShaderModule.cpp
     vk/VulkanBuffer.cpp
-    vk/StagingManager.cpp)
+    vk/StagingManager.cpp
+    vk/DescriptorPool.cpp
+    vk/DynamicUniform.cpp)
 
 set(VMC_COMMON_FILES
     common/Log.h

@@ -67,7 +67,7 @@ namespace vmc
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
 
-		auto result = vkQueueSubmit(device.getTransferQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueSubmit(device.getTransferQueue(), 1, &submitInfo, VK_NULL_HANDLE);
 		vkQueueWaitIdle(device.getTransferQueue());
 
 		currentOffset = 0;

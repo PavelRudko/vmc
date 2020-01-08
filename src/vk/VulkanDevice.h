@@ -45,6 +45,8 @@ namespace vmc
 		
 		VmaAllocator getMemoryAllocator() const;
 
+		const VkPhysicalDeviceProperties& getProperties() const;
+
 		void waitIdle() const;
 
 	private:
@@ -71,5 +73,7 @@ namespace vmc
 		VkSurfaceFormatKHR surfaceFormat;
 
 		VmaAllocator memoryAllocator = VK_NULL_HANDLE;
+
+		VkPhysicalDeviceProperties properties;
 	};
 }

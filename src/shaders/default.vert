@@ -1,12 +1,10 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(binding = 0) uniform UniformData
+layout(binding = 0) uniform MVP
 {
-    mat4 model;
-	mat4 view;
-	mat4 projection;
-} uniforms;
+    mat4 data;
+} mvp;
 
 layout(location = 0) in vec4 inPosition;
 layout(location = 1) in vec4 inColor;
@@ -14,6 +12,6 @@ layout(location = 1) in vec4 inColor;
 layout(location = 0) out vec4 fragColor;
 
 void main() {
-    gl_Position = uniforms.projection * uniforms.view * uniforms.model * inPosition;
+    gl_Position = mvp.data * inPosition;
     fragColor = inColor;
 }

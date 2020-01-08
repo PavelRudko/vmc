@@ -110,6 +110,8 @@ namespace vmc
 		vkGetDeviceQueue(handle, computeQueueFamilyIndex, 0, &computeQueue);
 		vkGetDeviceQueue(handle, transferQueueFamilyIndex, 0, &transferQueue);
 
+		vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+
 		auto availableFormats = getFormats(physicalDevice, surface);
 		surfaceFormat = chooseSurfaceFormat(availableFormats);
 
@@ -154,7 +156,8 @@ namespace vmc
 		transferQueueFamilyIndex(other.transferQueueFamilyIndex),
 		computeQueueFamilyIndex(other.computeQueueFamilyIndex),
 		surfaceFormat(other.surfaceFormat),
-		memoryAllocator(other.memoryAllocator)
+		memoryAllocator(other.memoryAllocator),
+		properties(properties)
 	{
 		other.handle = VK_NULL_HANDLE;
 		other.memoryAllocator = VK_NULL_HANDLE;
@@ -230,6 +233,11 @@ namespace vmc
 	VmaAllocator VulkanDevice::getMemoryAllocator() const
 	{
 		return memoryAllocator;
+	}
+
+	const VkPhysicalDeviceProperties& VulkanDevice::getProperties() const
+	{
+		return properties;
 	}
 
 	void VulkanDevice::waitIdle() const
