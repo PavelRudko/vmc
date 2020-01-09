@@ -15,6 +15,7 @@ set(VMC_VK_FILES
     vk/DescriptorPool.h
     vk/DynamicUniform.h
     vk/DescriptorSetLayout.h
+    vk/VulkanImage.h
     vk/VulkanInstance.cpp
     vk/VulkanDevice.cpp
     vk/Swapchain.cpp
@@ -23,13 +24,16 @@ set(VMC_VK_FILES
     vk/StagingManager.cpp
     vk/DescriptorPool.cpp
     vk/DynamicUniform.cpp
-    vk/DescriptorSetLayout.cpp)
+    vk/DescriptorSetLayout.cpp
+    vk/VulkanImage.cpp)
 
 set(VMC_COMMON_FILES
     common/Log.h
     common/Utils.h
+    common/Image.h
     common/Log.cpp
-    common/Utils.cpp)
+    common/Utils.cpp
+    common/Image.cpp)
 
 set(VMC_CORE_FILES
     core/Application.h
@@ -72,7 +76,8 @@ target_link_libraries(vmc
     volk
     glm
     glfw
-    vma)
+    vma
+    stb)
 
 target_compile_definitions(vmc PUBLIC NOMINMAX)
 

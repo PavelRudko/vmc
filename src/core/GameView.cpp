@@ -4,6 +4,7 @@
 #include <core/Application.h>
 #include <vk/ShaderModule.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <common/Image.h>
 
 namespace vmc
 {
@@ -26,6 +27,9 @@ namespace vmc
 	GameView::GameView(Application& application) :
 		View(application)
 	{
+		Image image("data/images/main_atlas.png");
+		printf("W: %u, H: %u, C: %u\n", image.getWidth(), image.getHeight(), image.getChannels());
+
 		initPipeline();
 		initBuffers();
 	}

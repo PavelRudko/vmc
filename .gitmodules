@@ -13,3 +13,6 @@
 [submodule "third_party/vulkan"]
 	path = third_party/vulkan
 	url = https://github.com/KhronosGroup/Vulkan-Headers
+[submodule "third_party/stb"]
+	path = third_party/stb
+	url = https://github.com/nothings/stb

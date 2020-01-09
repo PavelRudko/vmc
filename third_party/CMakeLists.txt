@@ -38,3 +38,9 @@ option(GLFW_BUILD_TESTS OFF)
 option(GLFW_INSTALL OFF)
 add_subdirectory(glfw)
 set_property(TARGET glfw PROPERTY FOLDER "third_party")
+
+# stb
+add_library(stb INTERFACE)
+set(STB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/stb)
+target_sources(stb INTERFACE ${STB_DIR}/stb_image.h)
+target_include_directories(stb INTERFACE ${STB_DIR})
