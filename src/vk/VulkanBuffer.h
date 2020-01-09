@@ -31,9 +31,9 @@ namespace vmc
 
 		void flush(VkDeviceSize offset, VkDeviceSize size);
 
-		void copyFrom(void* src);
+		void copyFrom(const void* src);
 
-		void copyFrom(void* src, VkDeviceSize offset, VkDeviceSize size);
+		void copyFrom(const void* src, VkDeviceSize offset, VkDeviceSize size);
 
 	private:
 		const VulkanDevice& device;

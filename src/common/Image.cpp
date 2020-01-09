@@ -8,7 +8,7 @@ namespace vmc
 	Image::Image(const std::string& path)
 	{
 		int w, h, c;
-		data = stbi_load(path.c_str(), &w, &h, &c, 0);
+		data = stbi_load(path.c_str(), &w, &h, &c, STBI_rgb_alpha);
 		if (!data) {
 			throw std::runtime_error("Cannot open image " + path + ".");
 		}

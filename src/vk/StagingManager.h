@@ -1,10 +1,11 @@
 #pragma once
 
 #include <vk/VulkanBuffer.h>
+#include <vk/VulkanImage.h>
 
 namespace vmc
 {
-	const VkDeviceSize DefaultStagingBufferSize = 2 * 1024 * 1024;
+	const VkDeviceSize DefaultStagingBufferSize = 32 * 1024 * 1024;
 
 	class StagingManager
 	{
@@ -23,7 +24,9 @@ namespace vmc
 
 		void start();
 
-		void copyToBuffer(void* data, VulkanBuffer& buffer, VkDeviceSize offset, VkDeviceSize size);
+		void copyToBuffer(const void* data, VulkanBuffer& buffer, VkDeviceSize offset, VkDeviceSize size);
+
+		void copyToImage(const void* data, VulkanImage& image, uint32_t width, uint32_t height);
 
 		void flush();
 
@@ -37,5 +40,7 @@ namespace vmc
 		VkCommandPool commandPool = VK_NULL_HANDLE;
 
 		VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+
+		void addLayoutTransition(VulkanImage& image, VkImageLayout oldLayout, VkImageLayout newLayout);
 	};
 }

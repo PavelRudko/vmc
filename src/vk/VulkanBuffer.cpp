@@ -71,12 +71,12 @@ namespace vmc
 		vmaFlushAllocation(device.getMemoryAllocator(), allocation, offset, size);
 	}
 
-	void VulkanBuffer::copyFrom(void* src)
+	void VulkanBuffer::copyFrom(const void* src)
 	{
 		copyFrom(src, 0, size);
 	}
 
-	void VulkanBuffer::copyFrom(void* src, VkDeviceSize offset, VkDeviceSize size)
+	void VulkanBuffer::copyFrom(const void* src, VkDeviceSize offset, VkDeviceSize size)
 	{
 		auto mappedData = map();
 		memcpy((uint8_t*)mappedData + offset, src, size);

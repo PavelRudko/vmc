@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+#include <stdint.h>
+#include <string>
+
 namespace vmc
 {
 	template<typename T>
@@ -13,4 +17,6 @@ namespace vmc
 		}
 		return value;
 	}
+
+	std::vector<uint8_t> readBinaryFile(const std::string& path);
 }
