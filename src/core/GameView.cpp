@@ -11,16 +11,13 @@ namespace vmc
 	GameView::GameView(Application& application) :
 		View(application)
 	{
-		initTexture();
 		initPipeline();
 		initBuffers();
+		mainAtlasDescriptor = application.getTextureBundle().getDescriptor("main_atlas");
 	}
 
 	GameView::~GameView()
 	{
-		if (sampler != VK_NULL_HANDLE) {
-			vkDestroySampler(application.getDevice().getHandle(), sampler, nullptr);
-		}
 	}
 
 	void GameView::update(float timeDelta)
@@ -38,8 +35,7 @@ namespace vmc
 		auto commandBuffer = renderContext.startFrame({ 0.8f, 0.9f, 1.0f, 1.0f });
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, defaultPipeline->getHandle());
-
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, defaultPipeline->getLayout(), 1, 1, &imageDescriptor, 0, nullptr);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, defaultPipeline->getLayout(), 1, 1, &mainAtlasDescriptor, 0, nullptr);
 
 		for (uint32_t i = 0; i < 2; i++) {
 			auto modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(i == 0 ? -1 : 1, 0, 0));
@@ -97,7 +93,7 @@ namespace vmc
 		pipelineDescription.vertexAttributes.push_back(colorAttribute);
 
 		pipelineDescription.descriptorSetLayouts.push_back(application.getMVPLayout().getHandle());
-		pipelineDescription.descriptorSetLayouts.push_back(samplerLayout->getHandle());
+		pipelineDescription.descriptorSetLayouts.push_back(application.getTextureLayout().getHandle());
 
 		defaultPipeline = std::make_unique<RenderPipeline>(application.getDevice(), pipelineDescription);
 	}
@@ -126,65 +122,6 @@ namespace vmc
 		stagingManager.copyToBuffer(vertices.data(), *vertexBuffer, 0, vertexBuffer->getSize());
 		stagingManager.copyToBuffer(indices.data(), *indexBuffer, 0, indexBuffer->getSize());
 		stagingManager.flush();
-	}
-
-	void GameView::initTexture()
-	{
-		Image rawImage("data/images/main_atlas.png");
-
-		image = std::make_unique<VulkanImage>(application.getDevice(),
-			rawImage.getWidth(),
-			rawImage.getHeight(),
-			VK_FORMAT_R8G8B8A8_UNORM,
-			VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-			VMA_MEMORY_USAGE_GPU_ONLY);
-
-		auto& stagingManager = application.getStagingManager();
-		stagingManager.start();
-		stagingManager.copyToImage(rawImage.getData(), *image, rawImage.getWidth(), rawImage.getHeight());
-		stagingManager.flush();
-
-		imageView = std::make_unique<VulkanImageView>(application.getDevice(), *image);
-
-		VkSamplerCreateInfo samplerInfo { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
-		samplerInfo.magFilter = VK_FILTER_NEAREST;
-		samplerInfo.minFilter = VK_FILTER_NEAREST;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.anisotropyEnable = VK_FALSE;
-		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-
-		if (vkCreateSampler(application.getDevice().getHandle(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
-			throw std::runtime_error("Cannot create sampler.");
-		}
-
-		VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
-		samplerLayoutBinding.binding = 0;
-		samplerLayoutBinding.descriptorCount = 1;
-		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		samplerLayoutBinding.pImmutableSamplers = nullptr;
-		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-		samplerLayout =  std::make_unique<DescriptorSetLayout>(application.getDevice(), std::vector<VkDescriptorSetLayoutBinding>{ samplerLayoutBinding });
-
-		imageDescriptorPool = std::make_unique<DescriptorPool>(application.getDevice(), 0, 0, 1, 1);
-		imageDescriptor = imageDescriptorPool->allocate(samplerLayout->getHandle());
-
-		VkDescriptorImageInfo imageInfo = {};
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = imageView->getHandle();
-		imageInfo.sampler = sampler;
-
-		VkWriteDescriptorSet samplerUpdateInfo{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-		samplerUpdateInfo.dstSet = imageDescriptor;
-		samplerUpdateInfo.dstBinding = 0;
-		samplerUpdateInfo.dstArrayElement = 0;
-		samplerUpdateInfo.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		samplerUpdateInfo.descriptorCount = 1;
-		samplerUpdateInfo.pImageInfo = &imageInfo;
-
-		vkUpdateDescriptorSets(application.getDevice().getHandle(), 1, &samplerUpdateInfo, 0, nullptr);
 	}
 }
 

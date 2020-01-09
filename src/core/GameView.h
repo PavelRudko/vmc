@@ -32,15 +32,9 @@ namespace vmc
 		std::unique_ptr<RenderPipeline> defaultPipeline;
 		std::unique_ptr<VulkanBuffer> vertexBuffer;
 		std::unique_ptr<VulkanBuffer> indexBuffer;
-		std::unique_ptr<VulkanImage> image;
-		std::unique_ptr<VulkanImageView> imageView;
-		std::unique_ptr<DescriptorPool> imageDescriptorPool;
-		std::unique_ptr<DescriptorSetLayout> samplerLayout;
-		VkDescriptorSet imageDescriptor;
-		VkSampler sampler = VK_NULL_HANDLE;
+		VkDescriptorSet mainAtlasDescriptor;
 
 		void initPipeline();
 		void initBuffers();
-		void initTexture();
 	};
 }

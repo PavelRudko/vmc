@@ -37,17 +37,14 @@ namespace vmc
 		window = std::make_unique<Window>(*this, *instance, windowWidth, windowHeight, ApplicationName);
 		device = std::make_unique<VulkanDevice>(instance->getBestPhysicalDevice(), window->getSurface(), requiredDeviceExtensions);
 
-		VkDescriptorSetLayoutBinding uniformDataBinding{};
-		uniformDataBinding.binding = 0;
-		uniformDataBinding.descriptorCount = 1;
-		uniformDataBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-		uniformDataBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-		mvpLayout = std::make_unique<DescriptorSetLayout>(*device, std::vector<VkDescriptorSetLayoutBinding>{ uniformDataBinding });
+		initDescriptorSetLayouts();
 
 		stagingManager = std::make_unique<StagingManager>(*device);
+		textureBundle = std::make_unique<TextureBundle>(*device, *textureLayout, *stagingManager);
 		renderPass = std::make_unique<RenderPass>(*device, device->getSurfaceFormat().format);
 		renderContext = std::make_unique<RenderContext>(*device, *window, *renderPass, *mvpLayout);
+
+		textureBundle->add("main_atlas", "data/images/main_atlas.png");
 	}
 
 	Application::~Application()
@@ -59,8 +56,10 @@ namespace vmc
 		currentView.reset();
 		renderContext.reset();
 		renderPass.reset();
+		textureBundle.reset();
 		stagingManager.reset();
 		mvpLayout.reset();
+		textureLayout.reset();
 		device.reset();
 		window.reset();
 		instance.reset();
@@ -86,6 +85,16 @@ namespace vmc
 		return *mvpLayout;
 	}
 
+	const DescriptorSetLayout& Application::getTextureLayout() const
+	{
+		return *textureLayout;
+	}
+
+	const TextureBundle& Application::getTextureBundle() const
+	{
+		return *textureBundle;
+	}
+
 	void Application::run()
 	{
 		currentView = std::make_unique<GameView>(*this);
@@ -96,7 +105,27 @@ namespace vmc
 	{
 	}
 
-	void Application::mainLoop()
+    void Application::initDescriptorSetLayouts()
+    {
+		VkDescriptorSetLayoutBinding uniformBinding{};
+		uniformBinding.binding = 0;
+		uniformBinding.descriptorCount = 1;
+		uniformBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+		uniformBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+		mvpLayout = std::make_unique<DescriptorSetLayout>(*device, std::vector<VkDescriptorSetLayoutBinding>{ uniformBinding });
+
+		VkDescriptorSetLayoutBinding samplerBinding = {};
+		samplerBinding.binding = 0;
+		samplerBinding.descriptorCount = 1;
+		samplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		samplerBinding.pImmutableSamplers = nullptr;
+		samplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		textureLayout = std::make_unique<DescriptorSetLayout>(*device, std::vector<VkDescriptorSetLayoutBinding>{ samplerBinding });
+    }
+
+    void Application::mainLoop()
 	{
 		while (!window->shouldClose()) {
 			window->pollEvents();

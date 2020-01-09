@@ -5,7 +5,7 @@
 #include <vk/VulkanInstance.h>
 #include <vk/StagingManager.h>
 #include <rendering/RenderContext.h>
-#include <vk/DescriptorSetLayout.h>
+#include <rendering/TextureBundle.h>
 #include <memory>
 #include "View.h"
 
@@ -34,6 +34,10 @@ namespace vmc
 
 		const DescriptorSetLayout& getMVPLayout() const;
 
+		const DescriptorSetLayout& getTextureLayout() const;
+
+		const TextureBundle& getTextureBundle() const;
+
 		void run();
 
 		void onWindowResize(uint32_t newWidth, uint32_t newHeight);
@@ -47,6 +51,10 @@ namespace vmc
 
 		std::unique_ptr<DescriptorSetLayout> mvpLayout;
 
+		std::unique_ptr<DescriptorSetLayout> textureLayout;
+
+		std::unique_ptr<TextureBundle> textureBundle;
+
 		std::unique_ptr<RenderPass> renderPass;
 
 		std::unique_ptr<RenderContext> renderContext;
@@ -54,6 +62,8 @@ namespace vmc
 		std::unique_ptr<StagingManager> stagingManager;
 
 		std::unique_ptr<View> currentView;
+
+		void initDescriptorSetLayouts();
 
 		void mainLoop();
 	};
