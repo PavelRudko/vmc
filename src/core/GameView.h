@@ -3,11 +3,7 @@
 #include "View.h"
 #include <rendering/RenderPipeline.h>
 #include <vk/VulkanBuffer.h>
-#include <vk/DescriptorPool.h>
-#include <vk/DynamicUniform.h>
-#include <vk/DescriptorSetLayout.h>
-#include <glm/glm.hpp>
-#include <vk/VulkanImage.h>
+#include <rendering/Camera.h>
 
 namespace vmc
 {
@@ -33,8 +29,12 @@ namespace vmc
 		std::unique_ptr<VulkanBuffer> vertexBuffer;
 		std::unique_ptr<VulkanBuffer> indexBuffer;
 		VkDescriptorSet mainAtlasDescriptor;
+		Camera camera;
+		bool isCursorLocked = false;
 
 		void initPipeline();
 		void initBuffers();
+		void lockCursor();
+		void unlockCursor();
 	};
 }

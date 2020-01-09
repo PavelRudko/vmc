@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include <vector>
+#include <glm/glm.hpp>
 
 namespace vmc
 {
@@ -35,6 +36,16 @@ namespace vmc
 		bool isFocused() const;
 
 		void pollEvents();
+
+		glm::uvec2 getMousePos() const;
+
+		void setMousePos(uint32_t x, uint32_t y) const;
+
+		void setCursorVisibility(bool isVisible);
+
+		bool isKeyPressed(int key);
+
+		bool isMouseButtonPressed(int button);
 
 	private:
 		GLFWwindow* handle = nullptr;

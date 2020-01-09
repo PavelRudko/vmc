@@ -38,6 +38,8 @@ namespace vmc
 
 		const TextureBundle& getTextureBundle() const;
 
+		Window& getWindow();
+
 		void run();
 
 		void onWindowResize(uint32_t newWidth, uint32_t newHeight);

@@ -95,6 +95,11 @@ namespace vmc
 		return *textureBundle;
 	}
 
+    Window& Application::getWindow()
+    {
+		return *window;
+    }
+
 	void Application::run()
 	{
 		currentView = std::make_unique<GameView>(*this);

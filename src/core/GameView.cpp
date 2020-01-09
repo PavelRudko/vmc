@@ -1,10 +1,9 @@
 #include "GameView.h"
 #include <common/Utils.h>
-#include <stdexcept>
 #include <core/Application.h>
 #include <vk/ShaderModule.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <common/Image.h>
+#include <common/Log.h>
 
 namespace vmc
 {
@@ -14,6 +13,8 @@ namespace vmc
 		initPipeline();
 		initBuffers();
 		mainAtlasDescriptor = application.getTextureBundle().getDescriptor("main_atlas");
+		camera.setPosition({ 0, 0, 2.0f });
+		lockCursor();
 	}
 
 	GameView::~GameView()
@@ -22,6 +23,48 @@ namespace vmc
 
 	void GameView::update(float timeDelta)
 	{
+		auto& window = application.getWindow();
+
+		uint32_t windowCenterX = window.getWidth() / 2;
+		uint32_t windowCenterY = window.getHeight() / 2;
+
+		if (!isCursorLocked && window.isMouseButtonPressed(GLFW_MOUSE_BUTTON_1)) {
+			lockCursor();
+		}
+
+		if (window.isKeyPressed(GLFW_KEY_ESCAPE)) {
+			unlockCursor();
+		}
+
+		if (isCursorLocked) {
+			auto mousePos = window.getMousePos();
+
+			float deltaX = (float)mousePos.x - windowCenterX;
+			float deltaY = (float)mousePos.y - windowCenterY;
+
+			camera.addYaw(-deltaX * 0.002f);
+			camera.addPitch(-deltaY * 0.002f);
+			window.setMousePos(windowCenterX, windowCenterY);
+		}
+
+		float speedForward = 0.0f;
+		float speedSide = 0.0f;
+
+		if (window.isKeyPressed(GLFW_KEY_W)) {
+			speedForward += 1.0f;
+		}
+		if (window.isKeyPressed(GLFW_KEY_S)) {
+			speedForward -= 1.0f;
+		}
+		if (window.isKeyPressed(GLFW_KEY_A)) {
+			speedSide -= 1.0f;
+		}
+		if (window.isKeyPressed(GLFW_KEY_D)) {
+			speedSide += 1.0f;
+		}
+
+		camera.moveForward(speedForward * 0.1f * timeDelta);
+		camera.moveSide(speedSide * 0.1f * timeDelta);
 	}
 
 	void GameView::render(RenderContext& renderContext)
@@ -29,8 +72,9 @@ namespace vmc
 		auto& uniform = renderContext.getMVPUniform();
 		auto uniformDescriptorSet = uniform.getDescriptorSet();
 
-		auto viewMatrix = glm::lookAt(glm::vec3(0, 0, 2.0f), glm::vec3(0, 0, 0), glm::vec3(0, 1.0f, 0));
-		auto projectionMatrix = glm::perspective(glm::pi<float>() / 2.0f, (float)renderContext.getWidth() / renderContext.getHeight(), 0.01f, 1000.0f);
+		auto viewMatrix = camera.getViewMatrix();
+		auto projectionMatrix = glm::perspective(glm::radians(55.0f), (float)renderContext.getWidth() / renderContext.getHeight(), 0.01f, 1000.0f);
+		projectionMatrix[1][1] *= -1;
 
 		auto commandBuffer = renderContext.startFrame({ 0.8f, 0.9f, 1.0f, 1.0f });
 
@@ -105,10 +149,10 @@ namespace vmc
 		float s = 0.0625f / 2;
 
 		std::vector<ColorVertex> vertices = {
-			{{-0.5f, -0.5f, 0, 1}, {0.0f, 0.0f}},
-	        {{0.5f, -0.5f, 0, 1},  {s, 0.0f}},
-	        {{0.5f, 0.5f, 0, 1},   {s, s}},
-	        {{-0.5f, 0.5f, 0, 1},  {0.0f, s}}
+			{{-0.5f, -0.5f, 0, 1}, {0.0f, s}},
+	        {{0.5f, -0.5f, 0, 1},  {s, s}},
+	        {{0.5f, 0.5f, 0, 1},   {s, 0}},
+	        {{-0.5f, 0.5f, 0, 1},  {0.0f, 0}}
 		};
 
 		std::vector<uint32_t> indices = {
@@ -122,6 +166,25 @@ namespace vmc
 		stagingManager.copyToBuffer(vertices.data(), *vertexBuffer, 0, vertexBuffer->getSize());
 		stagingManager.copyToBuffer(indices.data(), *indexBuffer, 0, indexBuffer->getSize());
 		stagingManager.flush();
+	}
+
+	void GameView::lockCursor()
+	{
+		auto& window = application.getWindow();
+		uint32_t windowCenterX = window.getWidth() / 2;
+		uint32_t windowCenterY = window.getHeight() / 2;
+		window.setMousePos(windowCenterX, windowCenterY);
+		window.setCursorVisibility(false);
+
+		isCursorLocked = true;
+	}
+
+	void GameView::unlockCursor()
+	{
+		auto& window = application.getWindow();
+		window.setCursorVisibility(true);
+
+		isCursorLocked = false;
 	}
 }
 

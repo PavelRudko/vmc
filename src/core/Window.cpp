@@ -74,6 +74,34 @@ namespace vmc
 		glfwPollEvents();
 	}
 
+    glm::uvec2 Window::getMousePos() const
+    {
+		double x, y;
+		glfwGetCursorPos(handle, &x, &y);
+		return glm::uvec2(x, y);
+    }
+
+    void Window::setMousePos(uint32_t x, uint32_t y) const
+    {
+		glfwSetCursorPos(handle, x, y);
+    }
+
+    void Window::setCursorVisibility(bool isVisible)
+    {
+		int mode = isVisible ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED;
+		glfwSetInputMode(handle, GLFW_CURSOR, mode);
+    }
+
+    bool Window::isKeyPressed(int key)
+    {
+		return glfwGetKey(handle, key) == GLFW_PRESS;
+    }
+
+	bool Window::isMouseButtonPressed(int button)
+	{
+		return glfwGetMouseButton(handle, button) == GLFW_PRESS;
+	}
+
 	void Window::onResize(uint32_t newWidth, uint32_t newHeight)
 	{
 		width = newWidth;
