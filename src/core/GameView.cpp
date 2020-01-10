@@ -94,7 +94,7 @@ namespace vmc
 
 			vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getHandle(), 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdDrawIndexed(commandBuffer, 6, 1, 0, 0, 0);
+			vkCmdDrawIndexed(commandBuffer, 12, 1, 0, 0, 0);
 		}
 
 		renderContext.endFrame();
@@ -111,19 +111,19 @@ namespace vmc
 		VkVertexInputBindingDescription colorVertexBinding{};
 		colorVertexBinding.binding = 0;
 		colorVertexBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		colorVertexBinding.stride = sizeof(ColorVertex);
+		colorVertexBinding.stride = sizeof(BlockVertex);
 
 		VkVertexInputAttributeDescription positionAttribute{};
 		positionAttribute.binding = 0;
 		positionAttribute.location = 0;
 		positionAttribute.format = VK_FORMAT_R32G32B32A32_SFLOAT;
-		positionAttribute.offset = offsetof(ColorVertex, position);
+		positionAttribute.offset = offsetof(BlockVertex, position);
 
 		VkVertexInputAttributeDescription colorAttribute{};
 		colorAttribute.binding = 0;
 		colorAttribute.location = 1;
 		colorAttribute.format = VK_FORMAT_R32G32_SFLOAT;
-		colorAttribute.offset = offsetof(ColorVertex, uv);
+		colorAttribute.offset = offsetof(BlockVertex, uv);
 
 		RenderPipelineDescription pipelineDescription;
 		pipelineDescription.renderPass = application.getRenderPass().getHandle();
@@ -146,20 +146,27 @@ namespace vmc
 	{
 		auto& stagingManager = application.getStagingManager();
 
-		float s = 0.0625f / 2;
+		float t = 0.03125f;
+		float s = 0.5f;
 
-		std::vector<ColorVertex> vertices = {
-			{{-0.5f, -0.5f, 0, 1}, {0.0f, s}},
-	        {{0.5f, -0.5f, 0, 1},  {s, s}},
-	        {{0.5f, 0.5f, 0, 1},   {s, 0}},
-	        {{-0.5f, 0.5f, 0, 1},  {0.0f, 0}}
+		std::vector<BlockVertex> vertices = {
+			{{-s, -s, -s, 1}, {0, t}},
+	        {{s, -s, -s, 1},  {t, t}},
+	        {{s, s, -s, 1},   {t, 0}},
+	        {{-s, s, -s, 1},  {0, 0}},
+
+			{{-s, -s, s, 1}, {0, t}},
+			{{s, -s, s, 1},  {t, t}},
+			{{s, s, s, 1},   {t, 0}},
+			{{-s, s, s, 1},  {0, 0}}
 		};
 
 		std::vector<uint32_t> indices = {
-			0, 1, 2, 2, 3, 0
+			0, 1, 2, 2, 3, 0,
+			4, 5, 6, 6, 7, 4
 		};
 
-		vertexBuffer = std::make_unique<VulkanBuffer>(application.getDevice(), vertices.size() * sizeof(ColorVertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
+		vertexBuffer = std::make_unique<VulkanBuffer>(application.getDevice(), vertices.size() * sizeof(BlockVertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
 		indexBuffer = std::make_unique<VulkanBuffer>(application.getDevice(), indices.size() * sizeof(uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
 
 		stagingManager.start();

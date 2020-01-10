@@ -59,15 +59,20 @@ namespace vmc
         return format;
     }
 
-    VulkanImageView::VulkanImageView(const VulkanDevice& device, const VulkanImage& image) :
+    VulkanImageView::VulkanImageView(const VulkanDevice& device, const VulkanImage& image, VkImageAspectFlags aspect) :
+        VulkanImageView(device, image.getHandle(), image.getFormat(), aspect)
+    {
+    }
+
+    VulkanImageView::VulkanImageView(const VulkanDevice& device, VkImage image, VkFormat format, VkImageAspectFlags aspect) :
         device(device)
     {
         VkImageViewCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = image.getHandle();
+        createInfo.image = image;
         createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format = image.getFormat();
-        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        createInfo.format = format;
+        createInfo.subresourceRange.aspectMask = aspect;
         createInfo.subresourceRange.baseMipLevel = 0;
         createInfo.subresourceRange.levelCount = 1;
         createInfo.subresourceRange.baseArrayLayer = 0;

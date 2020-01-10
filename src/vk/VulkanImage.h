@@ -36,7 +36,9 @@ namespace vmc
 	class VulkanImageView
 	{
 	public:
-		VulkanImageView(const VulkanDevice& device, const VulkanImage& image);
+		VulkanImageView(const VulkanDevice& device, const VulkanImage& image, VkImageAspectFlags aspect);
+
+		VulkanImageView(const VulkanDevice& device, VkImage image, VkFormat format, VkImageAspectFlags aspect);
 
 		VulkanImageView(const VulkanImageView&) = delete;
 

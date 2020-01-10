@@ -48,7 +48,7 @@ namespace vmc
         stagingManager.copyToImage(rawImage.getData(), image, rawImage.getWidth(), rawImage.getHeight());
         stagingManager.flush();
 
-        imageViews.emplace_back(device, image);
+        imageViews.emplace_back(device, image, VK_IMAGE_ASPECT_COLOR_BIT);
         auto& imageView = imageViews.back();
 
         auto descriptor = descriptorPool->allocate(textureLayout.getHandle());

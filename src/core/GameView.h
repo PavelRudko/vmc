@@ -7,7 +7,7 @@
 
 namespace vmc
 {
-	struct ColorVertex
+	struct BlockVertex
 	{
 		glm::vec4 position;
 		glm::vec2 uv;

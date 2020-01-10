@@ -6,6 +6,7 @@
 #include <core/Window.h>
 #include <vk/DescriptorSetLayout.h>
 #include <vk/DynamicUniform.h>
+#include <vk/VulkanImage.h>
 #include <memory>
 
 namespace vmc
@@ -50,7 +51,11 @@ namespace vmc
 
 		std::unique_ptr<DescriptorPool> descriptorPool;
 
-		std::vector<VkImageView> imageViews;
+		std::vector<VulkanImageView> swapchainImageViews;
+
+		std::vector<VulkanImage> depthImages;
+
+		std::vector<VulkanImageView> depthImageViews;
 
 		std::vector<VkFramebuffer> framebuffers;
 
@@ -64,7 +69,7 @@ namespace vmc
 
 		uint32_t frameResourceIndex = 0;
 
-		void initImageViews();
+		void initImages();
 
 		void initFramebuffers();
 

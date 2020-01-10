@@ -60,6 +60,23 @@ namespace vmc
 		throw std::runtime_error("Cannot find requested queue family.");
 	}
 
+	VkFormat chooseDepthFormat(VkPhysicalDevice physicalDevice)
+	{
+		static std::vector<VkFormat> candidates = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
+		auto depthFeature = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+		for (auto candidate : candidates) {
+			VkFormatProperties properties;
+			vkGetPhysicalDeviceFormatProperties(physicalDevice, candidate, &properties);
+
+			if ((properties.optimalTilingFeatures & depthFeature) == depthFeature) {
+				return candidate;
+			}
+		}
+
+		throw std::runtime_error("Cannot find depth format for device.");
+	}
+
 	VulkanDevice::VulkanDevice(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, const std::vector<const char*> requiredDeviceExtensions) :
 		physicalDevice(physicalDevice)
 	{
@@ -114,6 +131,7 @@ namespace vmc
 
 		auto availableFormats = getFormats(physicalDevice, surface);
 		surfaceFormat = chooseSurfaceFormat(availableFormats);
+		depthFormat = chooseDepthFormat(physicalDevice);
 
 		VmaVulkanFunctions vmaFunctions{};
 		vmaFunctions.vkAllocateMemory = vkAllocateMemory;
@@ -228,6 +246,11 @@ namespace vmc
 	VkSurfaceFormatKHR VulkanDevice::getSurfaceFormat() const
 	{
 		return surfaceFormat;
+	}
+
+	VkFormat VulkanDevice::getDepthFormat() const
+	{
+		return depthFormat;
 	}
 
 	VmaAllocator VulkanDevice::getMemoryAllocator() const

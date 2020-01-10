@@ -45,6 +45,13 @@ namespace vmc
 		rasterizer.cullMode = VK_CULL_MODE_NONE;
 		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
+		VkPipelineDepthStencilStateCreateInfo depthInfo{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
+		depthInfo.depthTestEnable = VK_TRUE;
+		depthInfo.depthWriteEnable = VK_TRUE;
+		depthInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+		depthInfo.depthBoundsTestEnable = VK_FALSE;
+		depthInfo.stencilTestEnable = VK_FALSE;
+
 		VkPipelineMultisampleStateCreateInfo multisampling{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
 		multisampling.sampleShadingEnable = VK_FALSE;
 		multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -77,6 +84,7 @@ namespace vmc
 		createInfo.pMultisampleState = &multisampling;
 		createInfo.pColorBlendState = &colorBlending;
 		createInfo.layout = layout;
+		createInfo.pDepthStencilState = &depthInfo;
 		createInfo.renderPass = description.renderPass;
 		createInfo.subpass = description.subpass;
 

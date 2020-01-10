@@ -118,38 +118,28 @@ namespace vmc
 		return *frameResources[frameResourceIndex].mvpUniform;
 	}
 
-	void RenderContext::initImageViews()
+	void RenderContext::initImages()
 	{
 		auto swapchainImages = swapchain->getImages();
-		imageViews.resize(swapchainImages.size(), VK_NULL_HANDLE);
 
 		for (uint32_t i = 0; i < swapchainImages.size(); i++) {
-			VkImageViewCreateInfo createInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-			createInfo.image = swapchainImages[i];
-			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			createInfo.format = swapchain->getFormat();
-			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			createInfo.subresourceRange.layerCount = 1;
-			createInfo.subresourceRange.levelCount = 1;
+			swapchainImageViews.emplace_back(device, swapchainImages[i], device.getSurfaceFormat().format, VK_IMAGE_ASPECT_COLOR_BIT);
 
-			if (vkCreateImageView(device.getHandle(), &createInfo, nullptr, &imageViews[i]) != VK_SUCCESS) {
-				throw std::runtime_error("Cannot create image view.");
-			}
+			depthImages.emplace_back(device, getWidth(), getHeight(), device.getDepthFormat(), VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
+			depthImageViews.emplace_back(device, depthImages.back(), VK_IMAGE_ASPECT_DEPTH_BIT);
 		}
 	}
 
 	void RenderContext::initFramebuffers()
 	{
 		auto extent = swapchain->getExtent();
-		framebuffers.resize(imageViews.size(), VK_NULL_HANDLE);
+		framebuffers.resize(swapchainImageViews.size(), VK_NULL_HANDLE);
 		for (uint32_t i = 0; i < framebuffers.size(); i++) {
+			std::vector<VkImageView> attachments = { swapchainImageViews[i].getHandle(), depthImageViews[i].getHandle() };
+
 			VkFramebufferCreateInfo createInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-			createInfo.attachmentCount = 1;
-			createInfo.pAttachments = &imageViews[i];
+			createInfo.attachmentCount = attachments.size();
+			createInfo.pAttachments = attachments.data();
 			createInfo.width = extent.width;
 			createInfo.height = extent.height;
 			createInfo.layers = 1;
@@ -231,17 +221,13 @@ namespace vmc
 			vkDestroyFramebuffer(device.getHandle(), framebuffer, nullptr);
 		}
 
-		for (auto imageView : imageViews) {
-			vkDestroyImageView(device.getHandle(), imageView, nullptr);
-		}
-
 		vkFreeCommandBuffers(device.getHandle(), commandPool, commandBuffers.size(), commandBuffers.data());
 		commandBuffers.clear();
 	}
 
 	void RenderContext::initSwapchainResources()
 	{
-		initImageViews();
+		initImages();
 		initFramebuffers();
 		initCommandBuffers();
 	}
@@ -252,16 +238,17 @@ namespace vmc
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 		vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-		VkClearValue clearValue;
-		clearValue.color = clearColor;
+		std::vector< VkClearValue> clearValues(2);
+		clearValues[0].color = clearColor;
+		clearValues[1].depthStencil = { 1.0f, 0 };
 
 		VkRenderPassBeginInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		renderPassInfo.renderPass = renderPass.getHandle();
 		renderPassInfo.framebuffer = framebuffer;
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = swapchain->getExtent();
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearValue;
+		renderPassInfo.clearValueCount = clearValues.size();
+		renderPassInfo.pClearValues = clearValues.data();
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
