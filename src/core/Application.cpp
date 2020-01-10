@@ -1,6 +1,7 @@
 #include "Application.h"
 #include <stdexcept>
 #include <common/Log.h>
+#include <chrono>
 #include "GameView.h"
 
 namespace vmc
@@ -95,6 +96,11 @@ namespace vmc
 		return *textureBundle;
 	}
 
+	uint32_t Application::getFPS() const
+	{
+		return fps;
+	}
+
     Window& Application::getWindow()
     {
 		return *window;
@@ -132,15 +138,34 @@ namespace vmc
 
     void Application::mainLoop()
 	{
+		static long NanosecondsInSecond = 1000000000;
+		auto lastTime = std::chrono::high_resolution_clock::now();
+		long long nanosecondsSinceFPSUpdate = 0;
+		uint32_t frameCounter = 0;
+
 		while (!window->shouldClose()) {
+			auto currentTime = std::chrono::high_resolution_clock::now();
+			auto elapsedNanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime - lastTime).count();
+			double elapsedSeconds = elapsedNanoseconds / (double)NanosecondsInSecond;
+
 			window->pollEvents();
 
 			if (currentView) {
-				currentView->update(1.0f / 60.0f);
+				currentView->update(elapsedSeconds);
 				if (window->isFocused()) {
 					currentView->render(*renderContext);
 				}
 			}
+
+			frameCounter++;
+			nanosecondsSinceFPSUpdate += elapsedNanoseconds;
+			if (nanosecondsSinceFPSUpdate > NanosecondsInSecond) {
+				nanosecondsSinceFPSUpdate -= NanosecondsInSecond;
+				fps = frameCounter;
+				frameCounter = 0;
+			}
+
+			lastTime = currentTime;
 		}
 	}
 }

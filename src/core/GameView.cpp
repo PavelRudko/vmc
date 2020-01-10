@@ -63,8 +63,8 @@ namespace vmc
 			speedSide += 1.0f;
 		}
 
-		camera.moveForward(speedForward * 0.1f * timeDelta);
-		camera.moveSide(speedSide * 0.1f * timeDelta);
+		camera.moveForward(speedForward * 3.0f * timeDelta);
+		camera.moveSide(speedSide * 3.0f * timeDelta);
 	}
 
 	void GameView::render(RenderContext& renderContext)

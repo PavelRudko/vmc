@@ -38,6 +38,8 @@ namespace vmc
 
 		const TextureBundle& getTextureBundle() const;
 
+		uint32_t getFPS() const;
+
 		Window& getWindow();
 
 		void run();
@@ -64,6 +66,8 @@ namespace vmc
 		std::unique_ptr<StagingManager> stagingManager;
 
 		std::unique_ptr<View> currentView;
+
+		uint32_t fps;
 
 		void initDescriptorSetLayouts();
 
