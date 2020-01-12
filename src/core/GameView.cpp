@@ -8,10 +8,11 @@
 namespace vmc
 {
 	GameView::GameView(Application& application) :
-		View(application)
+		View(application),
+        meshBuilder(application.getDevice())
 	{
 		initPipeline();
-		initBuffers();
+		initMesh();
 		mainAtlasDescriptor = application.getTextureBundle().getDescriptor("main_atlas");
 		camera.setPosition({ 0, 0, 2.0f });
 		lockCursor();
@@ -88,13 +89,13 @@ namespace vmc
 			uint32_t uniformOffset = uniform.pushData(&mvp);
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, defaultPipeline->getLayout(), 0, 1, &uniformDescriptorSet, 1, &uniformOffset);
 
-			VkBuffer vertexBufferHandle = vertexBuffer->getHandle();
+			VkBuffer vertexBufferHandle = mesh->getVertexBuffer().getHandle();
 			VkDeviceSize offset = 0;
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBufferHandle, &offset);
 
-			vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getHandle(), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(commandBuffer, mesh->getIndexBuffer().getHandle(), 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdDrawIndexed(commandBuffer, 12, 1, 0, 0, 0);
+			vkCmdDrawIndexed(commandBuffer, mesh->getIndicesCount(), 1, 0, 0, 0);
 		}
 
 		renderContext.endFrame();
@@ -142,36 +143,11 @@ namespace vmc
 		defaultPipeline = std::make_unique<RenderPipeline>(application.getDevice(), pipelineDescription);
 	}
 
-	void GameView::initBuffers()
+	void GameView::initMesh()
 	{
-		auto& stagingManager = application.getStagingManager();
-
-		float t = 0.03125f;
-		float s = 0.5f;
-
-		std::vector<BlockVertex> vertices = {
-			{{-s, -s, -s, 1}, {0, t}},
-	        {{s, -s, -s, 1},  {t, t}},
-	        {{s, s, -s, 1},   {t, 0}},
-	        {{-s, s, -s, 1},  {0, 0}},
-
-			{{-s, -s, s, 1}, {0, t}},
-			{{s, -s, s, 1},  {t, t}},
-			{{s, s, s, 1},   {t, 0}},
-			{{-s, s, s, 1},  {0, 0}}
-		};
-
-		std::vector<uint32_t> indices = {
-			0, 1, 2, 2, 3, 0,
-			4, 5, 6, 6, 7, 4
-		};
-
-		vertexBuffer = std::make_unique<VulkanBuffer>(application.getDevice(), vertices.size() * sizeof(BlockVertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
-		indexBuffer = std::make_unique<VulkanBuffer>(application.getDevice(), indices.size() * sizeof(uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
-
+        auto& stagingManager = application.getStagingManager();
 		stagingManager.start();
-		stagingManager.copyToBuffer(vertices.data(), *vertexBuffer, 0, vertexBuffer->getSize());
-		stagingManager.copyToBuffer(indices.data(), *indexBuffer, 0, indexBuffer->getSize());
+        mesh = meshBuilder.buildCubeMesh(stagingManager);
 		stagingManager.flush();
 	}
 

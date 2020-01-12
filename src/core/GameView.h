@@ -4,15 +4,10 @@
 #include <rendering/RenderPipeline.h>
 #include <vk/VulkanBuffer.h>
 #include <rendering/Camera.h>
+#include <rendering/MeshBuilder.h>
 
 namespace vmc
 {
-	struct BlockVertex
-	{
-		glm::vec4 position;
-		glm::vec2 uv;
-	};
-
 	class GameView : public View
 	{
 	public:
@@ -26,14 +21,14 @@ namespace vmc
 
 	private:
 		std::unique_ptr<RenderPipeline> defaultPipeline;
-		std::unique_ptr<VulkanBuffer> vertexBuffer;
-		std::unique_ptr<VulkanBuffer> indexBuffer;
+		std::unique_ptr<Mesh> mesh;
 		VkDescriptorSet mainAtlasDescriptor;
 		Camera camera;
+        MeshBuilder meshBuilder;
 		bool isCursorLocked = false;
 
 		void initPipeline();
-		void initBuffers();
+		void initMesh();
 		void lockCursor();
 		void unlockCursor();
 	};
