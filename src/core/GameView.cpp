@@ -11,9 +11,12 @@ namespace vmc
 		View(application),
         meshBuilder(application.getDevice())
 	{
+        meshBuilder.loadBlockDescriptions("data/blocks.json");
+        mainAtlasDescriptor = application.getTextureBundle().getDescriptor("main_atlas");
+
 		initPipeline();
 		initMesh();
-		mainAtlasDescriptor = application.getTextureBundle().getDescriptor("main_atlas");
+		
 		camera.setPosition({ 0, 0, 2.0f });
 		lockCursor();
 	}
@@ -147,7 +150,7 @@ namespace vmc
 	{
         auto& stagingManager = application.getStagingManager();
 		stagingManager.start();
-        mesh = meshBuilder.buildBlockMesh(stagingManager, 1);
+        mesh = meshBuilder.buildBlockMesh(stagingManager, 3);
 		stagingManager.flush();
 	}
 

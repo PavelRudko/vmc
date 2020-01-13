@@ -44,3 +44,13 @@ add_library(stb INTERFACE)
 set(STB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/stb)
 target_sources(stb INTERFACE ${STB_DIR}/stb_image.h)
 target_include_directories(stb INTERFACE ${STB_DIR})
+
+# jsoncpp
+option(JSONCPP_WITH_TESTS OFF)
+option(JSONCPP_WITH_POST_BUILD_UNITTEST OFF)
+option(JSONCPP_WITH_WARNING_AS_ERROR OFF)
+option(JSONCPP_WITH_STRICT_ISO OFF)
+option(JSONCPP_WITH_PKGCONFIG_SUPPORT OFF)
+option(JSONCPP_WITH_CMAKE_PACKAGE OFF)
+add_subdirectory(jsoncpp)
+set_property(TARGET jsoncpp_lib PROPERTY FOLDER "third_party")

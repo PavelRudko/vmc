@@ -51,15 +51,15 @@ set(VMC_RENDERING_FILES
     rendering/RenderPipeline.h
     rendering/TextureBundle.h
     rendering/Camera.h
-	rendering/Mesh.h
-	rendering/MeshBuilder.h
+    rendering/Mesh.h
+    rendering/MeshBuilder.h
     rendering/RenderContext.cpp
     rendering/RenderPass.cpp
     rendering/RenderPipeline.cpp
     rendering/TextureBundle.cpp
     rendering/Camera.cpp
-	rendering/Mesh.cpp
-	rendering/MeshBuilder.cpp)
+    rendering/Mesh.cpp
+    rendering/MeshBuilder.cpp)
 
 set(VMC_SHADER_FILES
     shaders/default.vert
@@ -85,7 +85,8 @@ target_link_libraries(vmc
     glm
     glfw
     vma
-    stb)
+    stb
+    jsoncpp_lib)
 
 target_compile_definitions(vmc PUBLIC NOMINMAX)
 

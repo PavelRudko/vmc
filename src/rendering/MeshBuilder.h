@@ -2,6 +2,7 @@
 #include <vk/StagingManager.h>
 #include <glm/glm.hpp>
 #include <memory>
+#include <string>
 
 namespace vmc
 {
@@ -9,6 +10,7 @@ namespace vmc
 
     struct Block
     {
+        std::string name;
         std::vector<glm::vec2> uvs;
     };
 
@@ -30,6 +32,8 @@ namespace vmc
         MeshBuilder& operator=(const MeshBuilder&) = delete;
 
         MeshBuilder& operator=(MeshBuilder&&) = delete;
+
+        void loadBlockDescriptions(const std::string& path);
 
         std::unique_ptr<Mesh> buildBlockMesh(StagingManager& stagingManager, BlockId blockId) const;
 
