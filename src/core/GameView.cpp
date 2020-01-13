@@ -147,7 +147,7 @@ namespace vmc
 	{
         auto& stagingManager = application.getStagingManager();
 		stagingManager.start();
-        mesh = meshBuilder.buildCubeMesh(stagingManager);
+        mesh = meshBuilder.buildBlockMesh(stagingManager, 1);
 		stagingManager.flush();
 	}
 
