@@ -46,6 +46,8 @@ namespace vmc
 		renderContext = std::make_unique<RenderContext>(*device, *window, *renderPass, *mvpLayout);
 
 		textureBundle->add("main_atlas", "data/images/main_atlas.png");
+        blockDescriptions = loadBlockDescriptions("data/blocks.json");
+        meshBuilder = std::make_unique<MeshBuilder>(*device, blockDescriptions);
 	}
 
 	Application::~Application()
@@ -95,6 +97,16 @@ namespace vmc
 	{
 		return *textureBundle;
 	}
+
+    const std::vector<Block>& Application::getBlockDescriptions() const
+    {
+        return blockDescriptions;
+    }
+
+    const MeshBuilder& Application::getMeshBuilder() const
+    {
+        return *meshBuilder;
+    }
 
 	uint32_t Application::getFPS() const
 	{

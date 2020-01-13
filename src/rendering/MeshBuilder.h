@@ -3,18 +3,12 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
+#include <world/Block.h>
+#include <world/Chunk.h>
 
 namespace vmc
 {
-    typedef uint8_t BlockId;
-
-    struct Block
-    {
-        std::string name;
-        std::vector<glm::vec2> uvs;
-    };
-
-    struct BlockVertex
+       struct BlockVertex
     {
         glm::vec4 position;
         glm::vec2 uv;
@@ -23,7 +17,7 @@ namespace vmc
     class MeshBuilder
     {
     public:
-        MeshBuilder(const VulkanDevice& device);
+        MeshBuilder(const VulkanDevice& device, const std::vector<Block>& blockDescriptions);
 
         MeshBuilder(const MeshBuilder&) = delete;
 
@@ -33,15 +27,17 @@ namespace vmc
 
         MeshBuilder& operator=(MeshBuilder&&) = delete;
 
-        void loadBlockDescriptions(const std::string& path);
+        std::unique_ptr<Mesh> buildChunkMesh(StagingManager& stagingManager, const Chunk& chunk) const;
 
         std::unique_ptr<Mesh> buildBlockMesh(StagingManager& stagingManager, BlockId blockId) const;
 
     private:
         const VulkanDevice& device;
 
-        std::vector<Block> blocks;
+        const std::vector<Block>& blockDescriptions;
 
-        void addCube(std::vector<BlockVertex>& vertices, std::vector<uint32_t>& indices, const std::vector<glm::vec2>& uvs) const;
+        void addCube(std::vector<BlockVertex>& vertices, std::vector<uint32_t>& indices, const std::vector<glm::vec2>& uvs, const glm::vec3& center = {0, 0, 0}) const;
+
+        std::unique_ptr<Mesh> createMesh(StagingManager& stagingManager, const std::vector<BlockVertex>& vertices, const std::vector<uint32_t>& indices) const;
     };
 }

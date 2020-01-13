@@ -6,6 +6,7 @@
 #include <vk/StagingManager.h>
 #include <rendering/RenderContext.h>
 #include <rendering/TextureBundle.h>
+#include <rendering/MeshBuilder.h>
 #include <memory>
 #include "View.h"
 
@@ -38,6 +39,10 @@ namespace vmc
 
 		const TextureBundle& getTextureBundle() const;
 
+        const std::vector<Block>& getBlockDescriptions() const;
+
+        const MeshBuilder& getMeshBuilder() const;
+
 		uint32_t getFPS() const;
 
 		Window& getWindow();
@@ -65,7 +70,11 @@ namespace vmc
 
 		std::unique_ptr<StagingManager> stagingManager;
 
-		std::unique_ptr<View> currentView;
+        std::vector<Block> blockDescriptions;
+
+        std::unique_ptr<MeshBuilder> meshBuilder;
+
+        std::unique_ptr<View> currentView;
 
 		uint32_t fps;
 

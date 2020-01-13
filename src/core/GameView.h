@@ -4,7 +4,8 @@
 #include <rendering/RenderPipeline.h>
 #include <vk/VulkanBuffer.h>
 #include <rendering/Camera.h>
-#include <rendering/MeshBuilder.h>
+#include <rendering/Mesh.h>
+#include <world/Chunk.h>
 
 namespace vmc
 {
@@ -24,10 +25,11 @@ namespace vmc
 		std::unique_ptr<Mesh> mesh;
 		VkDescriptorSet mainAtlasDescriptor;
 		Camera camera;
-        MeshBuilder meshBuilder;
+        Chunk chunk;
 		bool isCursorLocked = false;
 
 		void initPipeline();
+        void initChunk();
 		void initMesh();
 		void lockCursor();
 		void unlockCursor();

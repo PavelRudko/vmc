@@ -61,6 +61,13 @@ set(VMC_RENDERING_FILES
     rendering/Mesh.cpp
     rendering/MeshBuilder.cpp)
 
+set(VMC_WORLD_FILES
+    world/Block.h
+	world/Chunk.h
+	world/Block.cpp
+	world/Chunk.cpp
+)
+
 set(VMC_SHADER_FILES
     shaders/default.vert
     shaders/default.frag)
@@ -71,6 +78,7 @@ source_group("common\\" FILES ${VMC_COMMON_FILES})
 source_group("core\\" FILES ${VMC_CORE_FILES})
 source_group("rendering\\" FILES ${VMC_RENDERING_FILES})
 source_group("shaders\\" FILES ${VMC_SHADER_FILES})
+source_group("world\\" FILES ${VMC_WORLD_FILES})
 
 add_executable(vmc 
     ${VMC_FILES} 
@@ -78,7 +86,8 @@ add_executable(vmc
     ${VMC_COMMON_FILES}
     ${VMC_CORE_FILES}
     ${VMC_RENDERING_FILES}
-    ${VMC_SHADER_FILES})
+    ${VMC_SHADER_FILES}
+	${VMC_WORLD_FILES})
 
 target_link_libraries(vmc
     volk
