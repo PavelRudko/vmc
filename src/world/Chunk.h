@@ -15,9 +15,9 @@ namespace vmc
 
         Chunk(const Chunk&) = delete;
 
-        Chunk(Chunk&& other) = delete;
+        Chunk(Chunk&& other) noexcept;
 
-        ~Chunk() = default;
+        ~Chunk();
 
         Chunk& operator=(const Chunk&) = delete;
 
@@ -30,6 +30,6 @@ namespace vmc
         BlockId* getData();
 
     private:
-        BlockId blocks[ChunkHeight * ChunkLength * ChunkWidth];
+        BlockId* blocks = nullptr;
     };
 }

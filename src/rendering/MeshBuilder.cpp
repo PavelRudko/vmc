@@ -18,7 +18,7 @@ namespace vmc
     {
     }
 
-    std::unique_ptr<Mesh> MeshBuilder::buildChunkMesh(StagingManager& stagingManager, const Chunk& chunk) const
+    Mesh MeshBuilder::buildChunkMesh(StagingManager& stagingManager, const Chunk& chunk) const
     {
         std::vector<BlockVertex> vertices;
         std::vector<uint32_t> indices;
@@ -38,7 +38,7 @@ namespace vmc
         return createMesh(stagingManager, vertices, indices);
     }
 
-    std::unique_ptr<Mesh> MeshBuilder::buildBlockMesh(StagingManager& stagingManager, BlockId blockId) const
+    Mesh MeshBuilder::buildBlockMesh(StagingManager& stagingManager, BlockId blockId) const
     {
         std::vector<BlockVertex> vertices;
         std::vector<uint32_t> indices;
@@ -71,7 +71,7 @@ namespace vmc
         }
     }
 
-    std::unique_ptr<Mesh> MeshBuilder::createMesh(StagingManager& stagingManager, const std::vector<BlockVertex>& vertices, const std::vector<uint32_t>& indices) const
+    Mesh MeshBuilder::createMesh(StagingManager& stagingManager, const std::vector<BlockVertex>& vertices, const std::vector<uint32_t>& indices) const
     {
         VulkanBuffer vertexBuffer(device, vertices.size() * sizeof(BlockVertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
         VulkanBuffer indexBuffer(device, indices.size() * sizeof(uint32_t), VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
@@ -79,6 +79,6 @@ namespace vmc
         stagingManager.copyToBuffer(vertices.data(), vertexBuffer, 0, vertexBuffer.getSize());
         stagingManager.copyToBuffer(indices.data(), indexBuffer, 0, indexBuffer.getSize());
 
-        return std::make_unique<Mesh>(std::move(vertexBuffer), std::move(indexBuffer), indices.size());
+        return Mesh(std::move(vertexBuffer), std::move(indexBuffer), indices.size());
     }
 }

@@ -145,9 +145,9 @@ namespace vmc
 	}
 
 	VulkanInstance::VulkanInstance(VulkanInstance&& other) noexcept :
-		handle(other.handle),
+		handle(other.handle)
 #ifdef VULKAN_DEBUG
-        debugReportCallback(other.debugReportCallback)
+        ,debugReportCallback(other.debugReportCallback)
 #endif
 	{
 		other.handle = VK_NULL_HANDLE;

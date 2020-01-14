@@ -64,8 +64,10 @@ set(VMC_RENDERING_FILES
 set(VMC_WORLD_FILES
     world/Block.h
 	world/Chunk.h
+	world/World.h
 	world/Block.cpp
 	world/Chunk.cpp
+	world/World.cpp
 )
 
 set(VMC_SHADER_FILES

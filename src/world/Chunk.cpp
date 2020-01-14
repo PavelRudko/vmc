@@ -4,7 +4,22 @@ namespace vmc
 {
     Chunk::Chunk()
     {
-        memset(blocks, 0, sizeof(blocks));
+        size_t size = ChunkHeight * ChunkLength * ChunkWidth;
+        blocks = new BlockId[size];
+        memset(blocks, 0, size);
+    }
+
+    Chunk::Chunk(Chunk&& other) noexcept :
+        blocks(other.blocks)
+    {
+        other.blocks = nullptr;
+    }
+
+    Chunk::~Chunk()
+    {
+        if (blocks) {
+            delete[] blocks;
+        }
     }
 
     BlockId Chunk::getBlock(uint32_t x, uint32_t y, uint32_t z) const

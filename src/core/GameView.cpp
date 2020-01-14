@@ -13,8 +13,8 @@ namespace vmc
         mainAtlasDescriptor = application.getTextureBundle().getDescriptor("main_atlas");
 
 		initPipeline();
-        initChunk();
-		initMesh();
+        initChunks();
+		initMeshes();
 		
 		camera.setPosition({ 0, 42.0f, 2.0f });
 		lockCursor();
@@ -84,19 +84,27 @@ namespace vmc
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, defaultPipeline->getHandle());
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, defaultPipeline->getLayout(), 1, 1, &mainAtlasDescriptor, 0, nullptr);
 
-		auto modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-		auto mvp = projectionMatrix * viewMatrix * modelMatrix;
+        for (const auto& entry : chunkMeshes) {
+            glm::vec3 chunkOffset(0, 0, 0);
+            chunkOffset.x = entry.first[0] * (int32_t)ChunkWidth;
+            chunkOffset.z = entry.first[1] * (int32_t)ChunkLength;
 
-		uint32_t uniformOffset = uniform.pushData(&mvp);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, defaultPipeline->getLayout(), 0, 1, &uniformDescriptorSet, 1, &uniformOffset);
+            const auto& mesh = entry.second;
 
-		VkBuffer vertexBufferHandle = mesh->getVertexBuffer().getHandle();
-		VkDeviceSize offset = 0;
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBufferHandle, &offset);
+            auto modelMatrix = glm::translate(glm::mat4(1.0f), chunkOffset);
+            auto mvp = projectionMatrix * viewMatrix * modelMatrix;
 
-	    vkCmdBindIndexBuffer(commandBuffer, mesh->getIndexBuffer().getHandle(), 0, VK_INDEX_TYPE_UINT32);
+            uint32_t uniformOffset = uniform.pushData(&mvp);
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, defaultPipeline->getLayout(), 0, 1, &uniformDescriptorSet, 1, &uniformOffset);
 
-		vkCmdDrawIndexed(commandBuffer, mesh->getIndicesCount(), 1, 0, 0, 0);
+            VkBuffer vertexBufferHandle = mesh.getVertexBuffer().getHandle();
+            VkDeviceSize offset = 0;
+            vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBufferHandle, &offset);
+
+            vkCmdBindIndexBuffer(commandBuffer, mesh.getIndexBuffer().getHandle(), 0, VK_INDEX_TYPE_UINT32);
+
+            vkCmdDrawIndexed(commandBuffer, mesh.getIndicesCount(), 1, 0, 0, 0);
+        }
 
 		renderContext.endFrame();
 	}
@@ -143,22 +151,34 @@ namespace vmc
 		defaultPipeline = std::make_unique<RenderPipeline>(application.getDevice(), pipelineDescription);
 	}
 
-    void GameView::initChunk()
+    void GameView::initChunks()
     {
-        for (uint32_t y = 0; y < 40; y++) {
-            for (uint32_t z = 0; z < ChunkLength; z++) {
-                for (uint32_t x = 0; x < ChunkWidth; x++) {
-                    chunk.setBlock(x, y, z, y == 39 ? 1 : 2);
+        world.createChunk({ -1, -1 });
+        world.createChunk({ 0, -1 });
+        world.createChunk({ -1, 0 });
+        world.createChunk({ 0, 0 });
+
+        for (auto& entry : world.getChunks()) {
+            auto& chunk = entry.second;
+            for (uint32_t y = 0; y < 40; y++) {
+                for (uint32_t z = 0; z < ChunkLength; z++) {
+                    for (uint32_t x = 0; x < ChunkWidth; x++) {
+                        chunk.setBlock(x, y, z, y == 39 ? 1 : 2);
+                    }
                 }
             }
         }
     }
 
-	void GameView::initMesh()
+	void GameView::initMeshes()
 	{
         auto& stagingManager = application.getStagingManager();
 		stagingManager.start();
-        mesh = application.getMeshBuilder().buildChunkMesh(stagingManager, chunk);
+        for (auto& entry : world.getChunks()) {
+            auto& coord = entry.first;
+            auto& chunk = entry.second;
+            chunkMeshes.emplace(coord, application.getMeshBuilder().buildChunkMesh(stagingManager, chunk));
+        }
 		stagingManager.flush();
 	}
 

@@ -6,6 +6,7 @@
 #include <rendering/Camera.h>
 #include <rendering/Mesh.h>
 #include <world/Chunk.h>
+#include <world/World.h>
 
 namespace vmc
 {
@@ -22,15 +23,15 @@ namespace vmc
 
 	private:
 		std::unique_ptr<RenderPipeline> defaultPipeline;
-		std::unique_ptr<Mesh> mesh;
+        std::unordered_map<glm::ivec2, Mesh> chunkMeshes;
 		VkDescriptorSet mainAtlasDescriptor;
 		Camera camera;
-        Chunk chunk;
+        World world;
 		bool isCursorLocked = false;
 
 		void initPipeline();
-        void initChunk();
-		void initMesh();
+        void initChunks();
+		void initMeshes();
 		void lockCursor();
 		void unlockCursor();
 	};
