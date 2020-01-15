@@ -8,6 +8,8 @@
 
 namespace vmc
 {
+    glm::ivec2 getChunkCoordinate(const glm::ivec3& worldPosition);
+
     class World
     {
     public:
@@ -26,6 +28,8 @@ namespace vmc
         void createChunk(const glm::ivec2& coords);
 
         std::unordered_map<glm::ivec2, Chunk>& getChunks();
+        
+        const Chunk* getChunk(const glm::ivec3& worldPosition) const;
 
     private:
         std::unordered_map<glm::ivec2, Chunk> chunks;

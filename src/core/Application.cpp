@@ -103,7 +103,7 @@ namespace vmc
         return blockDescriptions;
     }
 
-    const MeshBuilder& Application::getMeshBuilder() const
+    MeshBuilder& Application::getMeshBuilder()
     {
         return *meshBuilder;
     }

@@ -153,10 +153,11 @@ namespace vmc
 
     void GameView::initChunks()
     {
-        world.createChunk({ -1, -1 });
-        world.createChunk({ 0, -1 });
-        world.createChunk({ -1, 0 });
-        world.createChunk({ 0, 0 });
+        for (int32_t x = -2; x <= 2; x++) {
+            for (int32_t z = -2; z <= 2; z++) {
+                world.createChunk({ x, z });
+            }
+        }
 
         for (auto& entry : world.getChunks()) {
             auto& chunk = entry.second;
@@ -177,7 +178,7 @@ namespace vmc
         for (auto& entry : world.getChunks()) {
             auto& coord = entry.first;
             auto& chunk = entry.second;
-            chunkMeshes.emplace(coord, application.getMeshBuilder().buildChunkMesh(stagingManager, chunk));
+            chunkMeshes.emplace(coord, application.getMeshBuilder().buildChunkMesh(stagingManager, world, chunk, coord));
         }
 		stagingManager.flush();
 	}

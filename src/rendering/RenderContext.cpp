@@ -223,6 +223,11 @@ namespace vmc
 
 		vkFreeCommandBuffers(device.getHandle(), commandPool, commandBuffers.size(), commandBuffers.data());
 		commandBuffers.clear();
+
+        depthImageViews.clear();
+        depthImages.clear();
+
+        swapchainImageViews.clear();
 	}
 
 	void RenderContext::initSwapchainResources()

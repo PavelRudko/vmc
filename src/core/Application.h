@@ -41,7 +41,7 @@ namespace vmc
 
         const std::vector<Block>& getBlockDescriptions() const;
 
-        const MeshBuilder& getMeshBuilder() const;
+        MeshBuilder& getMeshBuilder();
 
 		uint32_t getFPS() const;
 
