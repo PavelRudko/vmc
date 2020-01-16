@@ -168,6 +168,9 @@ namespace vmc
                     }
                 }
             }
+            chunk.setBlock(10, 40, 10, 5);
+            chunk.setBlock(4, 40, 7, 5);
+            chunk.setBlock(14, 40, 3, 5);
         }
     }
 

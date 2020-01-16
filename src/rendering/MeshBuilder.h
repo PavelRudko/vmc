@@ -47,8 +47,14 @@ namespace vmc
 
         const std::vector<Block>& blockDescriptions;
 
-        void addCube(std::vector<BlockVertex>& vertices, std::vector<uint32_t>& indices, const std::vector<glm::vec2>& uvs, const glm::vec3& center = {0, 0, 0}, uint8_t visibleFaces = Faces::All) const;
+        void addAdjascent(const glm::ivec3& position, const Chunk& chunk, std::vector<uint8_t>& chunkFaces) const;
+
+        void addBoundaryBlock(const glm::ivec3& position, const World& world, const Chunk& chunk, std::vector<uint8_t>& chunkFaces, const glm::ivec2& chunkCoordinate) const;
+
+        void addTransparentBlock(const glm::ivec3& position, const Chunk& chunk, std::vector<uint8_t>& chunkFaces) const;
 
         Mesh createMesh(StagingManager& stagingManager, const std::vector<BlockVertex>& vertices, const std::vector<uint32_t>& indices) const;
+
+        bool isOpaque(BlockId id) const;
     };
 }

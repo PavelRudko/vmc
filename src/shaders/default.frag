@@ -8,5 +8,10 @@ layout(location = 0) in vec2 fragUv;
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    outColor = texture(tex, fragUv);
+    vec4 texColor = texture(tex, fragUv);
+	if(texColor.r == 1.0 && texColor.b == 1.0 && texColor.g == 0) {
+	    discard;
+	}
+
+	outColor = texColor;
 }

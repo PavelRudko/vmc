@@ -1,7 +1,7 @@
 [
     {
         "id": 1,
-        "name": "Grass",
+        "name": "GrassDirt",
         "uvs": {
             "top": [16, 0, 32, 16],
             "bottom": [32, 0, 48, 16],
@@ -22,6 +22,17 @@
             "top": [64, 0, 80, 16],
             "bottom": [64, 0, 80, 16],
             "front": [48, 0, 64, 16]
+        }
+    },
+    {
+        "id": 5,
+        "name": "Grass",
+        "shape": "cross",
+        "opaque": false,
+        "width": 1.0,
+        "height": 0.875,
+        "uvs": {
+            "front": [80, 2, 96, 16]
         }
     }
 ]

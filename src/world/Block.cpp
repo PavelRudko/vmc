@@ -50,6 +50,15 @@ namespace vmc
         uvs.push_back({ element[2].asUInt(),  element[3].asUInt() });
     }
 
+    BlockShape getShape(const Json::Value& element)
+    {
+        auto stringValue = element.get("shape", "cube").asString();
+        if (stringValue == "cross") {
+            return BlockShape::Cross;
+        }
+        return BlockShape::Cube;
+    }
+
     std::vector<Block> loadBlockDescriptions(const std::string& path)
     {
         std::vector<Block> blocks(std::numeric_limits<BlockId>().max());
@@ -89,6 +98,10 @@ namespace vmc
             }
 
             blocks[id].uvs = calculateNormalizedUVs(uvs, 512, 512);
+            blocks[id].isOpaque = element.get("opaque", true).asBool();
+            blocks[id].width = element.get("width", 1.0f).asFloat();
+            blocks[id].height = element.get("height", 1.0f).asFloat();
+            blocks[id].shape = getShape(element);
         }
 
         return blocks;

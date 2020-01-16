@@ -40,6 +40,7 @@ namespace vmc
 	{
 		auto direction = getLookDirection();
 		direction.y = 0;
+        direction = glm::normalize(direction);
 		position += direction * delta;
 	}
 
@@ -48,7 +49,6 @@ namespace vmc
 		auto direction = getLookDirection();
 		direction.y = 0;
 		direction = glm::normalize(glm::cross(direction, glm::vec3(0, 1, 0)));
-		direction.y = 0;
 		position += direction * delta;
 	}
 
