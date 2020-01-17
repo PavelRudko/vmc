@@ -1,4 +1,6 @@
 #include "MeshBuilder.h"
+#include <chrono>
+#include <common/Log.h>
 
 namespace vmc
 {
@@ -98,38 +100,39 @@ namespace vmc
 
     Mesh MeshBuilder::buildChunkMesh(StagingManager& stagingManager, const World& world, const Chunk& chunk, const glm::ivec2& chunkCoordinate) const
     {
+        auto start = std::chrono::high_resolution_clock::now();
+
         static std::vector<uint8_t> visibleChunkFaces(ChunkHeight * ChunkWidth * ChunkLength, 0);
         memset(visibleChunkFaces.data(), 0, visibleChunkFaces.size());
 
         std::vector<BlockVertex> vertices;
         std::vector<uint32_t> indices;
 
-        for (uint32_t y = 0; y < ChunkHeight; y++) {
+        for (uint32_t y = 0; y <= chunk.getMaxHeight(); y++) {
             for (uint32_t z = 0; z < ChunkLength; z++) {
                 for (uint32_t x = 0; x < ChunkWidth; x++) {
                     auto blockId = chunk.getBlock(x, y, z);
                     const auto& description = blockDescriptions[blockId];
+                    glm::ivec3 coord(x, y, z);
                     if (!description.isOpaque) {
-                        addAdjascent({ x, y, z }, chunk, visibleChunkFaces);
-                        if (blockId != AirBlockId) {
-                            addTransparentBlock({ x, y, z }, chunk, visibleChunkFaces);
-                        }
+                        addAdjascent(coord, chunk, visibleChunkFaces);
                     }
-                    else if (x == 0 || x == ChunkWidth - 1 || z == 0 || z == ChunkLength - 1) {
-                        addBoundaryBlock({ x, y, z }, world, chunk, visibleChunkFaces, chunkCoordinate);
+                    if (blockId != AirBlockId && (x == 0 || x == ChunkWidth - 1 || z == 0 || z == ChunkLength - 1)) {
+                        addBoundaryBlock(coord, world, chunk, visibleChunkFaces, chunkCoordinate);
                     }
                 }
             }
         }
 
-        for (uint32_t y = 0; y < ChunkHeight; y++) {
+        const auto& chunkData = chunk.getData();
+        for (uint32_t y = 0; y <= chunk.getMaxHeight(); y++) {
             for (uint32_t z = 0; z < ChunkLength; z++) {
                 for (uint32_t x = 0; x < ChunkWidth; x++) {
                     size_t index = getIndexInChunk(x, y, z);
-                    auto blockId = chunk.getBlock(x, y, z);
-                    const auto& description = blockDescriptions[blockId];
                     uint8_t visibleFaces = visibleChunkFaces[index];
                     if (visibleFaces != Faces::None) {
+                        auto blockId = chunkData[index];
+                        const auto& description = blockDescriptions[blockId];
                         if (description.shape == BlockShape::Cube) {
                             addCube(vertices, indices, description, { x, y, z }, visibleFaces);
                         }
@@ -140,6 +143,10 @@ namespace vmc
                 }
             }
         }
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        //logd("Chunk rebuild time: %u ms.", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
 
         return createMesh(stagingManager, vertices, indices);
     }
@@ -163,7 +170,7 @@ namespace vmc
             }
 
             size_t index = getIndexInChunk(coord.x, coord.y, coord.z);
-            if (blockDescriptions[chunk.getData()[index]].isOpaque) {
+            if (chunk.getData()[index] != 0) {
                 chunkFaces[index] |= AdjascentFaces[i];
             }
         }

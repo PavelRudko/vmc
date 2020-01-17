@@ -39,11 +39,15 @@ namespace vmc
 
         void setBlock(uint32_t x, uint32_t y, uint32_t z, BlockId id);
 
+        uint32_t getMaxHeight() const;
+
         BlockId* getData();
 
         const BlockId* getData() const;
 
     private:
         BlockId* blocks = nullptr;
+
+        uint32_t maxHeight = 0;
     };
 }
