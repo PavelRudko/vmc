@@ -8,7 +8,8 @@
 namespace vmc
 {
 	GameView::GameView(Application& application) :
-		View(application)
+		View(application),
+        world(512)
 	{
         mainAtlasDescriptor = application.getTextureBundle().getDescriptor("main_atlas");
 
@@ -16,7 +17,7 @@ namespace vmc
         initChunks();
 		initMeshes();
 		
-		camera.setPosition({ 0, 42.0f, 2.0f });
+		camera.setPosition({ 0, 52.0f, 2.0f });
 		lockCursor();
 	}
 
@@ -65,6 +66,11 @@ namespace vmc
 		if (window.isKeyPressed(GLFW_KEY_D)) {
 			speedSide += 1.0f;
 		}
+
+        if (window.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+            speedSide *= 2;
+            speedForward *= 2;
+        }
 
 		camera.moveForward(speedForward * 3.0f * timeDelta);
 		camera.moveSide(speedSide * 3.0f * timeDelta);
@@ -153,25 +159,7 @@ namespace vmc
 
     void GameView::initChunks()
     {
-        for (int32_t x = -2; x <= 2; x++) {
-            for (int32_t z = -2; z <= 2; z++) {
-                world.createChunk({ x, z });
-            }
-        }
-
-        for (auto& entry : world.getChunks()) {
-            auto& chunk = entry.second;
-            for (uint32_t y = 0; y < 40; y++) {
-                for (uint32_t z = 0; z < ChunkLength; z++) {
-                    for (uint32_t x = 0; x < ChunkWidth; x++) {
-                        chunk.setBlock(x, y, z, y == 39 ? 1 : 2);
-                    }
-                }
-            }
-            chunk.setBlock(10, 40, 10, 5);
-            chunk.setBlock(4, 40, 7, 5);
-            chunk.setBlock(14, 40, 3, 5);
-        }
+        world.preloadChunks({ 0, 0, 0 }, 5);
     }
 
 	void GameView::initMeshes()

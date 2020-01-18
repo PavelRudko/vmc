@@ -8,8 +8,8 @@ namespace vmc
     {
         {0, -1, 0},
         {0, 1, 0},
-        {0, 0, 1},
         {0, 0, -1},
+        {0, 0, 1},
         {-1, 0, 0},
         {1, 0, 0}
     };
@@ -22,6 +22,16 @@ namespace vmc
         Faces::Back,
         Faces::Right,
         Faces::Left
+    };
+
+    const float BlockFaceIlluminance[6] =
+    {
+        1.0f,
+        0.1f,
+        0.5f,
+        0.8f,
+        0.7f,
+        0.4f
     };
 
     const glm::vec3 CubeVertices[6][4] =
@@ -48,10 +58,11 @@ namespace vmc
         for (uint32_t face = 0; face < 6; face++) {
             if ((visibleFaces & AdjascentFaces[face]) != 0) {
                 uint32_t baseIndex = vertices.size();
+                float illuminance = BlockFaceIlluminance[face];
 
                 for (int i = 0; i < 4; i++) {
                     vertices.push_back({});
-                    vertices[baseIndex + i].position = glm::vec4(CubeVertices[face][i] * halfSize + center, 1.0f);
+                    vertices[baseIndex + i].position = glm::vec4(CubeVertices[face][i] * halfSize + center, illuminance);
                     vertices[baseIndex + i].uv = description.uvs[uvIndex + i];
                 }
 
@@ -108,7 +119,7 @@ namespace vmc
         std::vector<BlockVertex> vertices;
         std::vector<uint32_t> indices;
 
-        for (uint32_t y = 0; y <= chunk.getMaxHeight(); y++) {
+        for (uint32_t y = 0; y <= chunk.getMaxHeight() + 1; y++) {
             for (uint32_t z = 0; z < ChunkLength; z++) {
                 for (uint32_t x = 0; x < ChunkWidth; x++) {
                     auto blockId = chunk.getBlock(x, y, z);
@@ -125,7 +136,7 @@ namespace vmc
         }
 
         const auto& chunkData = chunk.getData();
-        for (uint32_t y = 0; y <= chunk.getMaxHeight(); y++) {
+        for (uint32_t y = 0; y <= chunk.getMaxHeight() + 1; y++) {
             for (uint32_t z = 0; z < ChunkLength; z++) {
                 for (uint32_t x = 0; x < ChunkWidth; x++) {
                     size_t index = getIndexInChunk(x, y, z);

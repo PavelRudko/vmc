@@ -195,7 +195,7 @@ namespace vmc
 				throw std::runtime_error("Cannot create fence.");
 			}
 
-			frameResources[i].mvpUniform = std::make_unique<DynamicUniform>(device, *descriptorPool, mvpLayout.getHandle(), sizeof(glm::mat4), 256);
+			frameResources[i].mvpUniform = std::make_unique<DynamicUniform>(device, *descriptorPool, mvpLayout.getHandle(), sizeof(glm::mat4), 1024);
 		}
 	}
 

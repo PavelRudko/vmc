@@ -3,6 +3,7 @@
 #include "Chunk.h"
 #include <unordered_map>
 #include <glm/glm.hpp>
+#include "TerrainGenerator.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/hash.hpp"
 
@@ -13,7 +14,7 @@ namespace vmc
     class World
     {
     public:
-        World();
+        World(int32_t seed);
 
         World(const World&) = delete;
 
@@ -25,13 +26,15 @@ namespace vmc
 
         World& operator=(World&&) = delete;
 
-        void createChunk(const glm::ivec2& coords);
-
         std::unordered_map<glm::ivec2, Chunk>& getChunks();
         
         const Chunk* getChunk(const glm::ivec3& worldPosition) const;
 
+        void preloadChunks(const glm::ivec3 center, int32_t radius);
+
     private:
         std::unordered_map<glm::ivec2, Chunk> chunks;
+
+        TerrainGenerator terrainGenerator;
     };
 }

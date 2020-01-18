@@ -65,10 +65,13 @@ set(VMC_WORLD_FILES
     world/Block.h
 	world/Chunk.h
 	world/World.h
+	world/TerrainGenerator.h
+	world/PerlinNoise.h
 	world/Block.cpp
 	world/Chunk.cpp
 	world/World.cpp
-)
+	world/TerrainGenerator.cpp
+	world/PerlinNoise.cpp)
 
 set(VMC_SHADER_FILES
     shaders/default.vert

@@ -10,13 +10,9 @@ namespace vmc
         return coord;
     }
 
-    World::World()
+    World::World(int32_t seed) :
+        terrainGenerator(seed)
     {
-    }
-
-    void World::createChunk(const glm::ivec2& coords)
-    {
-        chunks.emplace(coords, Chunk());
     }
 
     std::unordered_map<glm::ivec2, Chunk>& World::getChunks()
@@ -28,5 +24,16 @@ namespace vmc
     {
         auto it = chunks.find(getChunkCoordinate(worldPosition));
         return it == chunks.end() ? nullptr : &it->second;
+    }
+
+    void World::preloadChunks(const glm::ivec3 center, int32_t radius)
+    {
+        auto centerChunk = getChunkCoordinate(center);
+        for (int32_t z = -radius; z <= radius; z++) {
+            for (int32_t x = -radius; x <= radius; x++) {
+                auto coord = centerChunk + glm::ivec2(x, z);
+                terrainGenerator.generateChunk(chunks[coord], coord);
+            }
+        }
     }
 }
