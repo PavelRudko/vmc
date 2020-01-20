@@ -3,9 +3,19 @@
 
 namespace vmc
 {
-    VulkanImage::VulkanImage(const VulkanDevice& device, uint32_t width, uint32_t height, VkFormat format, VkSampleCountFlagBits samples, VkImageUsageFlags usage, VmaMemoryUsage memoryUsage) :
+    VulkanImage::VulkanImage(const VulkanDevice& device, 
+        uint32_t width, 
+        uint32_t height, 
+        VkFormat format, 
+        VkSampleCountFlagBits samples, 
+        VkImageUsageFlags usage, 
+        VmaMemoryUsage memoryUsage,
+        uint32_t mipLevels) :
         device(device),
-        format(format)
+        format(format),
+        mipLevels(mipLevels),
+        width(width),
+        height(height)
     {
         VkImageCreateInfo createInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
         createInfo.usage = usage;
@@ -13,7 +23,7 @@ namespace vmc
         createInfo.extent.width = width;
         createInfo.extent.height = height;
         createInfo.extent.depth = 1;
-        createInfo.mipLevels = 1;
+        createInfo.mipLevels = mipLevels;
         createInfo.arrayLayers = 1;
         createInfo.format = format;
         createInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -57,6 +67,21 @@ namespace vmc
     VkFormat VulkanImage::getFormat() const
     {
         return format;
+    }
+
+    uint32_t VulkanImage::getWidth() const
+    {
+        return width;
+    }
+
+    uint32_t VulkanImage::getHeight() const
+    {
+        return height;
+    }
+
+    uint32_t VulkanImage::getMipLevels() const
+    {
+        return mipLevels;
     }
 
     VulkanImageView::VulkanImageView(const VulkanDevice& device, const VulkanImage& image, VkImageAspectFlags aspect) :

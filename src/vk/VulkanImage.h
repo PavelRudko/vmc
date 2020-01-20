@@ -7,7 +7,14 @@ namespace vmc
 	class VulkanImage
 	{
 	public:
-		VulkanImage(const VulkanDevice& device, uint32_t width, uint32_t height, VkFormat format, VkSampleCountFlagBits samples, VkImageUsageFlags usage, VmaMemoryUsage memoryUsage);
+		VulkanImage(const VulkanDevice& device, 
+            uint32_t width, 
+            uint32_t height, 
+            VkFormat format, 
+            VkSampleCountFlagBits samples, 
+            VkImageUsageFlags usage, 
+            VmaMemoryUsage memoryUsage, 
+            uint32_t mipLevels = 1);
 
 		VulkanImage(const VulkanImage&) = delete;
 
@@ -23,6 +30,12 @@ namespace vmc
 
 		VkFormat getFormat() const;
 
+        uint32_t getWidth() const;
+
+        uint32_t getHeight() const;
+
+        uint32_t getMipLevels() const;
+
 	private:
 		const VulkanDevice& device;
 
@@ -31,6 +44,12 @@ namespace vmc
 		VkImage handle = VK_NULL_HANDLE;
 
 		VkFormat format;
+
+        uint32_t width = 0;
+
+        uint32_t height = 0;
+
+        uint32_t mipLevels = 1;
 	};
 
 	class VulkanImageView

@@ -26,7 +26,7 @@ namespace vmc
 
 		TextureBundle& operator=(TextureBundle&&) = delete;
 
-		void add(const std::string& name, const std::string& path);
+		void add(const std::string& name, const std::string& path, uint32_t mipLevels = 1);
 
 		VkDescriptorSet getDescriptor(const std::string& name) const;
 

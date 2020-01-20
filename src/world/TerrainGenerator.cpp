@@ -22,7 +22,6 @@ namespace vmc
 
                 float n = noise.getValue(offsetX / gridSize, offsetZ / gridSize);
                 int32_t height = minHeight + (maxHeight - minHeight) * (0.5f + n * 0.5f);
-
                 for (int32_t y = 0; y <= height; y++) {
                     chunk.setBlock(x, y, z, y == height ? 1 : 2);
                 }

@@ -45,7 +45,7 @@ namespace vmc
 		renderPass = std::make_unique<RenderPass>(*device, device->getSurfaceFormat().format);
 		renderContext = std::make_unique<RenderContext>(*device, *window, *renderPass, *mvpLayout);
 
-		textureBundle->add("main_atlas", "data/images/main_atlas.png");
+		textureBundle->add("main_atlas", "data/images/main_atlas.png", 4);
         blockDescriptions = loadBlockDescriptions("data/blocks.json");
         meshBuilder = std::make_unique<MeshBuilder>(*device, blockDescriptions);
 	}

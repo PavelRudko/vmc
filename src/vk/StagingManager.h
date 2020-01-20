@@ -26,9 +26,15 @@ namespace vmc
 
 		void copyToBuffer(const void* data, VulkanBuffer& buffer, VkDeviceSize offset, VkDeviceSize size);
 
-		void copyToImage(const void* data, VulkanImage& image, uint32_t width, uint32_t height);
+		void copyToImage(const void* data, VulkanImage& image, VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		void flush();
+
+        void startGraphics();
+
+        void generateMipmap(VulkanImage& image);
+
+        void flushGraphics();
 
 	private:
 		const VulkanDevice& device;
@@ -41,6 +47,10 @@ namespace vmc
 
 		VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 
-		void addLayoutTransition(VulkanImage& image, VkImageLayout oldLayout, VkImageLayout newLayout);
+        VkCommandPool graphicsCommandPool = VK_NULL_HANDLE;
+
+        VkCommandBuffer graphicsCommandBuffer = VK_NULL_HANDLE;
+
+		void addLayoutTransition(VkCommandBuffer commandBuffer, VulkanImage& image, VkImageLayout oldLayout, VkImageLayout newLayout);
 	};
 }
