@@ -16,8 +16,10 @@ namespace vmc
         samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.anisotropyEnable = VK_FALSE;
         samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.minLod = 0;
+        samplerInfo.maxLod = 4;
+        samplerInfo.mipLodBias = -1.2f;
 
         if (vkCreateSampler(device.getHandle(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
             throw std::runtime_error("Cannot create sampler.");

@@ -85,11 +85,11 @@ namespace vmc
     }
 
     VulkanImageView::VulkanImageView(const VulkanDevice& device, const VulkanImage& image, VkImageAspectFlags aspect) :
-        VulkanImageView(device, image.getHandle(), image.getFormat(), aspect)
+        VulkanImageView(device, image.getHandle(), image.getFormat(), aspect, image.getMipLevels())
     {
     }
 
-    VulkanImageView::VulkanImageView(const VulkanDevice& device, VkImage image, VkFormat format, VkImageAspectFlags aspect) :
+    VulkanImageView::VulkanImageView(const VulkanDevice& device, VkImage image, VkFormat format, VkImageAspectFlags aspect, uint32_t mipLevels) :
         device(device)
     {
         VkImageViewCreateInfo createInfo = {};
@@ -99,7 +99,7 @@ namespace vmc
         createInfo.format = format;
         createInfo.subresourceRange.aspectMask = aspect;
         createInfo.subresourceRange.baseMipLevel = 0;
-        createInfo.subresourceRange.levelCount = 1;
+        createInfo.subresourceRange.levelCount = mipLevels;
         createInfo.subresourceRange.baseArrayLayer = 0;
         createInfo.subresourceRange.layerCount = 1;
 
