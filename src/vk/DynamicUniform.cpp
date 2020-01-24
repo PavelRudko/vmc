@@ -3,16 +3,22 @@
 
 namespace vmc
 {
-	DynamicUniform::DynamicUniform(const VulkanDevice& device, DescriptorPool& descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDeviceSize elementSize, uint32_t maxElements) :
-		buffer(device, elementSize * maxElements, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_ONLY),
-		elementSize(elementSize)
+	VkDeviceSize calculateAlignment(const VulkanDevice& device, VkDeviceSize elementSize)
 	{
 		auto minAlignment = device.getProperties().limits.minUniformBufferOffsetAlignment;
-		alignment = elementSize;
+		VkDeviceSize alignment = elementSize;
 		if (minAlignment > 0) {
 			alignment = (alignment + minAlignment - 1) & ~(minAlignment - 1);
 		}
 
+		return alignment;
+	}
+
+	DynamicUniform::DynamicUniform(const VulkanDevice& device, DescriptorPool& descriptorPool, VkDescriptorSetLayout descriptorSetLayout, VkDeviceSize elementSize, uint32_t maxElements) :
+		alignment(calculateAlignment(device, elementSize)),
+		buffer(device, alignment* maxElements, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_ONLY),
+		elementSize(elementSize)
+	{
 		mappedData = buffer.map();
 		descriptorSet = descriptorPool.allocate(descriptorSetLayout);
 

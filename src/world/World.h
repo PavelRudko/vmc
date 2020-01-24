@@ -32,6 +32,8 @@ namespace vmc
 
         void preloadChunks(const glm::ivec3 center, int32_t radius);
 
+        Chunk& generateChunk(const glm::ivec2& coordinate);
+
     private:
         std::unordered_map<glm::ivec2, Chunk> chunks;
 

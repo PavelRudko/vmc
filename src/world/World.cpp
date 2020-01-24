@@ -31,9 +31,15 @@ namespace vmc
         auto centerChunk = getChunkCoordinate(center);
         for (int32_t z = -radius; z <= radius; z++) {
             for (int32_t x = -radius; x <= radius; x++) {
-                auto coord = centerChunk + glm::ivec2(x, z);
-                terrainGenerator.generateChunk(chunks[coord], coord);
+                auto coordinate = centerChunk + glm::ivec2(x, z);
+                terrainGenerator.generateChunk(chunks[coordinate], coordinate);
             }
         }
+    }
+
+    Chunk& World::generateChunk(const glm::ivec2& coordinate)
+    {
+        terrainGenerator.generateChunk(chunks[coordinate], coordinate);
+        return chunks[coordinate];
     }
 }

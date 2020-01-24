@@ -31,6 +31,8 @@ namespace vmc
 	private:
 		VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 
+		VkDeviceSize alignment;
+
 		VulkanBuffer buffer;
 
 		void* mappedData = nullptr;
@@ -38,7 +40,5 @@ namespace vmc
 		VkDeviceSize offset = 0;
 
 		VkDeviceSize elementSize;
-
-		VkDeviceSize alignment;
 	};
 }

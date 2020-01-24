@@ -52,6 +52,11 @@ namespace vmc
 		position += direction * delta;
 	}
 
+    void Camera::moveUp(float delta)
+    {
+		position.y += delta;
+    }
+
 	glm::vec3 Camera::getPosition() const
 	{
 		return position;

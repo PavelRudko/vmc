@@ -19,6 +19,8 @@ namespace vmc
 
 		void moveSide(float delta);
 
+		void moveUp(float delta);
+
 		glm::vec3 getPosition() const;
 
 		glm::vec3 getLookDirection();

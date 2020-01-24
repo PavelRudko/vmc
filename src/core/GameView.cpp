@@ -17,7 +17,8 @@ namespace vmc
         initChunks();
 		initMeshes();
 		
-		camera.setPosition({ 0, 52.0f, 2.0f });
+		camera.setPosition({ 0, 60.0f, 2.0f });
+		camera.addPitch(-3.141592 / 2);
 		lockCursor();
 	}
 
@@ -53,6 +54,7 @@ namespace vmc
 
 		float speedForward = 0.0f;
 		float speedSide = 0.0f;
+		float speedUp = 0.0f;
 
 		if (window.isKeyPressed(GLFW_KEY_W)) {
 			speedForward += 1.0f;
@@ -66,14 +68,25 @@ namespace vmc
 		if (window.isKeyPressed(GLFW_KEY_D)) {
 			speedSide += 1.0f;
 		}
+		if (window.isKeyPressed(GLFW_KEY_SPACE)) {
+			speedUp += 1.0f;
+		}
+		if (window.isKeyPressed(GLFW_KEY_LEFT_CONTROL)) {
+			speedUp -= 1.0f;
+		}
 
         if (window.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
             speedSide *= 2;
             speedForward *= 2;
+			speedUp *= 2;
         }
 
 		camera.moveForward(speedForward * 3.0f * timeDelta);
 		camera.moveSide(speedSide * 3.0f * timeDelta);
+		camera.moveUp(speedUp * 3.0f * timeDelta);
+
+		enqueueSurroundingChunks(camera.getPosition());
+		loadNextChunk();
 	}
 
 	void GameView::render(RenderContext& renderContext)
@@ -159,7 +172,7 @@ namespace vmc
 
     void GameView::initChunks()
     {
-        world.preloadChunks({ 0, 0, 0 }, 5);
+        world.preloadChunks({ 0, 0, 0 }, 0);
     }
 
 	void GameView::initMeshes()
@@ -191,6 +204,63 @@ namespace vmc
 		window.setCursorVisibility(true);
 
 		isCursorLocked = false;
+	}
+
+	void GameView::enqueueChunk(int32_t x, int32_t z)
+	{
+		auto& chunks = world.getChunks();
+		glm::ivec2 coord(x, z);
+		if (chunks.find(coord) == chunks.end() && !isPendingLoading(coord)) {
+			chunksToLoad.push_back(coord);
+		}
+	}
+
+	void GameView::enqueueSurroundingChunks(const glm::vec3& playerPosition)
+	{
+		auto centerChunk = getChunkCoordinate(playerPosition);
+		int32_t cx = centerChunk[0];
+		int32_t cz = centerChunk[1];
+		auto& chunks = world.getChunks();
+
+		for (int32_t r = 1; r <= visibleChunkRadius + 2; r++) {
+			for (int32_t i = 0; i <= r; i++) {
+				enqueueChunk(cx + i, cz + r);
+				enqueueChunk(cx + i, cz - r);
+				if (i > 0) {
+					enqueueChunk(cx - i, cz + r);
+					enqueueChunk(cx - i, cz - r);
+				}
+
+				enqueueChunk(cx + r, cz + i);
+				enqueueChunk(cx - r, cz + i);
+				if (i > 0) {
+					enqueueChunk(cx + r, cz - i);
+					enqueueChunk(cx - r, cz - i);
+				}
+			}
+		}
+	}
+
+	void GameView::loadNextChunk()
+	{
+		if (chunksToLoad.empty()) {
+			return;
+		}
+
+		auto coord = chunksToLoad.front();
+		auto& chunk = world.generateChunk(coord);
+
+		auto& stagingManager = application.getStagingManager();
+		stagingManager.start();
+	    chunkMeshes.emplace(coord, application.getMeshBuilder().buildChunkMesh(stagingManager, world, chunk, coord));
+		stagingManager.flush();
+
+		chunksToLoad.pop_front();
+	}
+
+	bool GameView::isPendingLoading(const glm::ivec2& coord)
+	{
+		return std::find(chunksToLoad.begin(), chunksToLoad.end(), coord) != chunksToLoad.end();
 	}
 }
 
